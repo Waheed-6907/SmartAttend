@@ -1,186 +1,256 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartAttend Pro - Schedule & Tracker</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-main: #f8f9fa; 
-            --bg-card: rgba(255, 255, 255, 0.9);
-            --bg-header: rgba(255, 255, 255, 0.5); 
-            --bg-modal: #ffffff;
-            --text-primary: #495057; 
-            --text-secondary: #adb5bd;
-            --text-header: #343a40; 
-            --text-bold: #212529;
-            --border-color: rgba(0, 0, 0, 0.05);
-            --fancy-gradient-start: #4f46e5; 
-            --fancy-gradient-end: #7c3aed;
-        }
-        .dark {
-            --bg-main: #1e293b; 
-            --bg-card: rgba(100, 116, 139, 0.5);
-            --bg-header: rgba(30, 41, 59, 0.5); 
-            --bg-modal: #334155;
-            --text-primary: #cbd5e1; 
-            --text-secondary: #94a3b8;
-            --text-header: #e2e8f0; 
-            --text-bold: #f1f5f9;
-            --border-color: rgba(148, 163, 184, 0.2);
-            --fancy-gradient-start: #6366f1; 
-            --fancy-gradient-end: #8b5cf6;
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-main);
-            color: var(--text-primary);
-        }
-        .font-subject {
-            font-family: 'Poppins', sans-serif;
-        }
-        .main-bg { background-image: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%); }
-        .dark .main-bg { background-image: linear-gradient(120deg, #374151 0%, #111827 100%); }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartAttend Pro - Schedule & Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+        --bg-main: #f8f9fa; 
+        --bg-card: rgba(255, 255, 255, 0.9);
+        --bg-header: rgba(255, 255, 255, 0.5); 
+        --bg-modal: #ffffff;
+        --bg-summary-card: #f8fafc;
+        --text-primary: #495057; 
+        --text-secondary: #adb5bd;
+        --text-header: #343a40; 
+        --text-bold: #212529;
+        --border-color: rgba(0, 0, 0, 0.05);
+        --fancy-gradient-start: #4f46e5; 
+        --fancy-gradient-end: #7c3aed;
+    }
+    .dark {
+        --bg-main: #1e293b; 
+        --bg-card: rgba(100, 116, 139, 0.5);
+        --bg-header: rgba(30, 41, 59, 0.5); 
+        --bg-modal: #334155;
+        --bg-summary-card: #1e293b;
+        --text-primary: #cbd5e1; 
+        --text-secondary: #94a3b8;
+        --text-header: #e2e8f0; 
+        --text-bold: #f1f5f9;
+        --border-color: rgba(148, 163, 184, 0.2);
+        --fancy-gradient-start: #6366f1; 
+        --fancy-gradient-end: #8b5cf6;
+    }
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--bg-main);
+        color: var(--text-primary);
+        overscroll-behavior-x: none;
+    }
+    .font-subject {
+        font-family: 'Poppins', sans-serif;
+    }
+    .main-bg { background-image: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%); }
+    .dark .main-bg { background-image: linear-gradient(120deg, #374151 0%, #111827 100%); }
 
-        .fancy-button {
-            background-image: linear-gradient(to right, var(--fancy-gradient-start), var(--fancy-gradient-end));
-            transition: all 0.3s ease; box-shadow: 0 4px 15px 0 rgba(124, 58, 237, 0.3);
-        }
-        .fancy-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px 0 rgba(124, 58, 237, 0.4);
-        }
-        .attendance-card, .modal-content {
-            background-color: var(--bg-card); backdrop-filter: blur(10px);
-            border: 1px solid var(--border-color);
-        }
-        .modal-content { background-color: var(--bg-modal); }
-        .status-present { background-color: #dcfce7 !important; }
-        .status-absent { background-color: #fee2e2 !important; }
-        .status-cancelled { background-color: #e9ecef !important; text-decoration: line-through; }
-        
-        .status-present .class-info { color: #15803d; }
-        .status-absent .class-info { color: #b91c1c; }
-        .status-cancelled .class-info { color: #4b5563; }
+    .fancy-button {
+        background-image: linear-gradient(to right, var(--fancy-gradient-start), var(--fancy-gradient-end));
+        transition: all 0.3s ease; box-shadow: 0 4px 15px 0 rgba(124, 58, 237, 0.3);
+    }
+    .fancy-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px 0 rgba(124, 58, 237, 0.4);
+    }
+    .fancy-button:active {
+        transform: scale(0.95);
+        transition: transform 0.1s ease;
+    }
+    .attendance-card, .modal-content {
+        background-color: var(--bg-card); backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+    }
+    .dark .attendance-card {
+        background-color: #1e293b;
+        border-color: rgba(148, 163, 184, 0.3);
+    }
+    .modal-content { background-color: var(--bg-modal); }
+    .status-present { background-color: #dcfce7 !important; }
+    .status-absent { background-color: #fee2e2 !important; }
+    .status-cancelled { background-color: #e9ecef !important; text-decoration: line-through; }
+   
+    .status-present .class-info { color: #15803d; }
+    .status-absent .class-info { color: #b91c1c; }
+    .status-cancelled .class-info { color: #4b5563; }
 
-        .dark .status-present .class-info,
-        .dark .status-absent .class-info,
-        .dark .status-cancelled .class-info {
-            color: #1e293b;
-        }
-       
-        .modal-overlay, .sidebar-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(0, 0, 0, 0.6); display: flex; z-index: 50;
-            opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;
-        }
-        .modal-overlay { align-items: center; justify-content: center; }
-        .modal-overlay.visible, .sidebar-overlay.visible { opacity: 1; visibility: visible; }
-        .modal-content {
-            padding: 2rem; border-radius: 0.75rem;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
-            transform: scale(0.95); transition: transform 0.3s;
-        }
-        .modal-overlay.visible .modal-content { transform: scale(1); }
-        #sidebar-menu {
-            position: fixed; top: 0; left: 0; bottom: 0;
-            width: 280px; background-color: var(--bg-modal);
-            transform: translateX(-100%); transition: transform 0.3s ease-in-out;
-            z-index: 60; box-shadow: 0 0 20px rgba(0,0,0,0.2);
-        }
-        #sidebar-menu.open { transform: translateX(0); }
-        #toast-notification, #reminder-toast {
-            position: fixed; bottom: 20px; left: 50%;
-            transform: translate(-50%, 200%); transition: transform 0.5s ease-in-out; z-index: 100;
-        }
-        #toast-notification.show, #reminder-toast.show { transform: translate(-50%, 0); }
-        
-        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #4f46e5; }
-        input:checked + .slider:before { transform: translateX(22px); }
+    .dark .status-present, .dark .status-absent, .dark .status-cancelled {
+        background-color: #1a202c !important;
+    }
 
-        .text-bold { color: var(--text-bold); }
-        .text-secondary { color: var(--text-secondary); }
-    </style>
+    .dark .status-present .class-info,
+    .dark .status-absent .class-info,
+    .dark .status-cancelled .class-info {
+        color: #a0aec0;
+    }
+    .subject-summary-card {
+        background-color: var(--bg-summary-card);
+        border-color: var(--border-color);
+    }
+   
+    .modal-overlay, .sidebar-overlay {
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background-color: rgba(0, 0, 0, 0.6); display: flex; z-index: 50;
+        opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;
+    }
+    .modal-overlay { align-items: center; justify-content: center; }
+    .modal-overlay.visible, .sidebar-overlay.visible { opacity: 1; visibility: visible; }
+    .modal-content {
+        padding: 2rem; border-radius: 0.75rem;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        transform: scale(0.95); transition: transform 0.3s;
+    }
+    .modal-overlay.visible .modal-content { transform: scale(1); }
+    #sidebar-menu {
+        position: fixed; top: 0; left: 0; bottom: 0;
+        width: 280px; background-color: var(--bg-modal);
+        transform: translateX(-100%); transition: transform 0.3s ease-in-out;
+        z-index: 60; box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    }
+    #sidebar-menu.open { transform: translateX(0); }
+    #toast-notification, #reminder-toast {
+        position: fixed; bottom: 20px; left: 50%;
+        transform: translate(-50%, 200%); transition: transform 0.5s ease-in-out; z-index: 100;
+    }
+    #toast-notification.show, #reminder-toast.show { transform: translate(-50%, 0); }
+   
+    .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+    .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: #4f46e5; }
+    input:checked + .slider:before { transform: translateX(22px); }
+
+    .reload-icon { transition: transform 0.5s ease-in-out; }
+    .reload-icon:hover { transform: rotate(360deg); }
+
+    .text-bold { color: var(--text-bold); }
+    .text-secondary { color: var(--text-secondary); }
+
+    /* Styles for Swipe-to-Delete */
+    .class-card-wrapper {
+        position: relative;
+        overflow: hidden;
+        border-radius: 0.5rem; /* Match card radius */
+    }
+    .swipe-content {
+        position: relative;
+        z-index: 10;
+        touch-action: pan-y; /* Allow vertical scroll */
+        transition: transform 0.3s ease-out;
+    }
+    .delete-action {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 90px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #ef4444;
+        color: white;
+        font-weight: 600;
+        z-index: 5;
+        cursor: pointer;
+    }
+  </style>
 </head>
 <body class="antialiased">
 
-    <div id="login-page" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 p-4">
-        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 space-y-6">
-            <div class="text-center">
-                <h1 class="text-3xl font-bold text-gray-800">SmartAttend Pro</h1>
-                <p class="text-gray-500 mt-2">Please sign in to continue</p>
-            </div>
-            <div id="login-error" class="text-red-500 text-sm text-center hidden"></div>
-            <div class="space-y-4">
-                <input type="text" id="username" placeholder="Username" class="w-full px-4 py-3 rounded-lg bg-gray-100 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition">
-                <div class="space-y-2">
-                    <input type="password" id="password" placeholder="Password" class="w-full px-4 py-3 rounded-lg bg-gray-100 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition">
-                    <div class="flex items-center">
-                        <input id="show-password" type="checkbox" onclick="togglePasswordVisibility()" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-                        <label for="show-password" class="ml-2 block text-sm text-gray-700">Show Password</label>
-                    </div>
+  <div id="login-page" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 p-4">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 space-y-6">
+        <div class="text-center">
+            <h1 class="text-3xl font-bold text-gray-800">SmartAttend Pro</h1>
+            <p class="text-gray-500 mt-2">Please sign in to continue</p>
+        </div>
+        <div id="login-error" class="text-red-500 text-sm text-center hidden"></div>
+        <div class="space-y-4">
+            <input type="text" id="username" placeholder="Username" class="w-full px-4 py-3 rounded-lg bg-gray-100 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition">
+            <div class="space-y-2">
+                <input type="password" id="password" placeholder="Password" class="w-full px-4 py-3 rounded-lg bg-gray-100 border-transparent focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition">
+                <div class="flex items-center">
+                    <input id="show-password" type="checkbox" onclick="togglePasswordVisibility()" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                    <label for="show-password" class="ml-2 block text-sm text-gray-700">Show Password</label>
                 </div>
             </div>
-            <button id="login-button" class="w-full text-white px-6 py-3 rounded-lg fancy-button font-semibold">Login</button>
-           
-            <div class="mt-6 p-4 bg-gray-50 rounded-lg text-sm text-gray-600 border border-gray-200">
-                <p class="font-semibold text-gray-700 mb-2">Login Requirements:</p>
-                <ul class="list-disc list-inside space-y-2">
-                    <li>The <strong>Username</strong> field cannot be empty.</li>
-                    <li>The <strong>Password</strong> must be a 12-digit number following the format: <code>160424750***</code> (e.g., <code>160424750001</code>).</li>
-                </ul>
-            </div>
-            
-            <div id="credit-line" class="text-center text-sm text-gray-500 mt-8 pt-6 border-t border-gray-200">
-                Designed & Developed by <strong class="font-semibold text-gray-600">Waheed Mujtaba</strong>
-            </div>
-
         </div>
-    </div>
+        <button id="login-button" class="w-full text-white px-6 py-3 rounded-lg fancy-button font-semibold">Login</button>
+       
+        <div class="mt-6 p-4 bg-gray-50 rounded-lg text-sm text-gray-600 border border-gray-200">
+            <p class="font-semibold text-gray-700 mb-2">Login Requirements:</p>
+            <ul class="list-disc list-inside space-y-2">
+                <li>The <strong>Username</strong> field cannot be empty.</li>
+                <li>The <strong>Password</strong> must be a 12-digit number following the format: <code>160424750***</code> (e.g., <code>160424750001</code>).</li>
+            </ul>
+        </div>
+       
+        <div id="credit-line" class="text-center text-sm text-gray-500 mt-8 pt-6 border-t border-gray-200">
+            Designed & Developed by <strong class="font-semibold text-gray-600">Waheed Mujtaba</strong>
+        </div>
 
-    <div id="app-page" class="hidden main-bg min-h-screen">
-        <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleMenu()"></div>
-        <div id="sidebar-menu" class="p-6 flex flex-col">
-            <h2 class="text-2xl font-bold text-indigo-600 mb-8">Menu</h2>
-            <nav class="flex flex-col space-y-4 flex-grow">
-                <a href="#" onclick="toggleMenu()" class="text-lg hover:text-indigo-600 transition flex items-center">
-                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                    Home
-                </a>
-                 <a href="#" onclick="showProfileModal()" class="text-lg hover:text-indigo-600 transition flex items-center">
-                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                    Profile Details
-                </a>
-                <a href="#" onclick="showSummaryModal()" class="text-lg hover:text-indigo-600 transition flex items-center">
-                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 00-4-4H3V9h2a4 4 0 004-4V5l7 5-7 5z"></path></svg>
-                    Attendance Summary
-                </a>
-                 <a href="#" onclick="showProgressTrackerModal()" class="text-lg hover:text-indigo-600 transition flex items-center">
-                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                    Progress Tracker
-                </a>
-                 <a href="#" onclick="showAnalysisModal()" class="text-lg hover:text-indigo-600 transition flex items-center">
-                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                    Analysis
-                </a>
-                 <a href="#" onclick="showFeedbackModal()" class="text-lg hover:text-indigo-600 transition flex items-center">
-                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                    Feedback
-                </a>
-                <a href="#" onclick="confirmEraseAllData()" class="text-lg hover:text-red-600 transition flex items-center mt-4">
-                   <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    Erase All Data
-                </a>
-            </nav>
-            <div class="flex justify-between items-center mb-6">
+    </div>
+  </div>
+
+  <div id="app-page" class="hidden main-bg min-h-screen">
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleMenu()"></div>
+    <div id="sidebar-menu" class="p-6 flex flex-col h-full">
+        <h2 class="text-2xl font-bold text-indigo-600 mb-8">Menu</h2>
+        <nav class="flex flex-col space-y-4">
+            <a href="#" onclick="toggleMenu()" class="text-lg hover:text-indigo-600 transition flex items-center">
+                <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                Home
+            </a>
+             <a href="#" onclick="showProfileModal()" class="text-lg hover:text-indigo-600 transition flex items-center">
+                <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                Profile Details
+            </a>
+            <a href="#" onclick="showSummaryModal()" class="text-lg hover:text-indigo-600 transition flex items-center">
+                <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 00-4-4H3V9h2a4 4 0 004-4V5l7 5-7 5z"></path></svg>
+                Attendance Summary
+            </a>
+             <a href="#" onclick="showProgressTrackerModal()" class="text-lg hover:text-indigo-600 transition flex items-center">
+                <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                Progress Tracker
+            </a>
+             <a href="#" onclick="showAnalysisModal()" class="text-lg hover:text-indigo-600 transition flex items-center">
+                <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                Analysis
+            </a>
+            <a href="#" onclick="showReportModal()" class="text-lg hover:text-indigo-600 transition flex items-center">
+                <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                Report
+            </a>
+            <a href="#" onclick="showScheduleModal()" class="text-lg hover:text-indigo-600 transition flex items-center">
+                <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                View Schedule
+            </a>
+            <a href="#" onclick="showImportExportModal()" class="text-lg hover:text-indigo-600 transition flex items-center">
+                <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                Export/Import Data
+            </a>
+            <a href="#" onclick="showFeedbackModal()" class="text-lg hover:text-indigo-600 transition flex items-center">
+                <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                Feedback
+            </a>
+            <a href="#" onclick="showAboutModal()" class="text-lg hover:text-indigo-600 transition flex items-center">
+                <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                About Us
+            </a>
+            <a href="#" onclick="showSettingsModal()" class="text-lg hover:text-indigo-600 transition flex items-center">
+                <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                Settings
+            </a>
+        </nav>
+        <div class="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div class="flex justify-between items-center mb-4">
                 <span class="text-lg">Dark Mode</span>
                 <label class="switch">
                     <input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode()">
@@ -193,720 +263,1368 @@
                     Logout
                 </a>
             </div>
+            <div class="text-center text-sm text-gray-500 mt-4">
+                Version 3.5
+            </div>
         </div>
+    </div>
 
-        <header class="bg-header backdrop-blur-lg shadow-sm sticky top-0 z-40">
-            <div class="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-                <button onclick="toggleMenu()" class="p-2 rounded-md text-text-header hover:text-indigo-600 hover:bg-white/50">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+    <header class="bg-header backdrop-blur-lg shadow-sm sticky top-0 z-40">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+            <button onclick="toggleMenu()" class="p-2 rounded-md text-text-header hover:text-indigo-600 hover:bg-white/50">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+            <div id="header-attendance" class="text-lg font-bold text-text-header hidden sm:block"></div>
+            <div class="flex items-center space-x-4">
+                <button onclick="window.location.reload()" class="p-2 rounded-md text-text-header hover:text-indigo-600 hover:bg-white/50" title="Reload Page">
+                    <svg class="w-6 h-6 reload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"></path></svg>
                 </button>
-                <div id="header-attendance" class="text-lg font-bold text-text-header hidden sm:block"></div>
-                <div class="flex items-center space-x-4">
-                    <input type="date" id="date-picker" class="bg-white/50 border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-700">
-                    <div id="username-display" class="text-lg font-bold text-text-header text-right"></div>
-                    <img id="header-profile-picture" src="https://placehold.co/40x40/e0e0e0/757575?text=P" class="w-10 h-10 rounded-full object-cover border-2 border-indigo-200">
-                </div>
+                <input type="date" id="date-picker" class="bg-white/50 border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-700">
+                <div id="username-display" class="text-lg font-bold text-text-header text-right"></div>
+                <img id="header-profile-picture" src="https://placehold.co/40x40/e0e0e0/757575?text=P" class="w-10 h-10 rounded-full object-cover border-2 border-indigo-200">
             </div>
-        </header>
+        </div>
+    </header>
 
-        <main class="container mx-auto p-4 sm:p-6 lg:p-8">
-            <div id="attendance-alert" class="p-4 mb-6 rounded-lg shadow-md" role="alert"></div>
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-2 space-y-8">
-                    <div class="attendance-card rounded-xl shadow-lg p-6">
-                        <div class="flex justify-between items-center mb-6">
-                             <h2 id="timetable-title" class="text-2xl font-bold text-text-bold"></h2>
-                            <button id="add-class-btn" onclick="openAddClassModal()" title="Add Extra Class" class="fancy-button text-white rounded-full w-10 h-10 flex items-center justify-center text-2xl font-bold pb-1">+</button>
-                        </div>
-                        <div id="daily-schedule" class="space-y-4"></div>
-                    </div>
-                    <div id="action-buttons" class="text-center flex justify-center items-center space-x-4">
-                        <button onclick="saveData()" class="text-white px-8 py-3 rounded-lg fancy-button font-semibold text-lg">Save Attendance</button>
-                        <button onclick="clearTodaysAttendance()" class="text-red-500 border border-red-500 hover:bg-red-500 hover:text-white px-6 py-3 rounded-lg font-semibold text-lg transition">Clear Today</button>
-                        <button id="holiday-button" onclick="markDayAsHoliday()" class="text-blue-500 border border-blue-500 hover:bg-blue-500 hover:text-white px-6 py-3 rounded-lg font-semibold text-lg transition">Mark as Holiday</button>
-                    </div>
-                </div>
+    <main class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <div id="attendance-alert" class="p-4 mb-6 rounded-lg shadow-md" role="alert"></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-8">
                 <div class="attendance-card rounded-xl shadow-lg p-6">
-                    <h2 class="text-2xl font-bold text-center mb-6 text-text-bold">Overall Summary</h2>
-                    <div class="chart-container" style="position: relative; height:280px; width:100%; max-width: 350px; margin: auto;">
-                        <canvas id="attendanceChart"></canvas>
+                    <div class="flex justify-between items-center mb-6">
+                         <h2 id="timetable-title" class="text-2xl font-bold text-text-bold"></h2>
+                        <button id="add-class-btn" onclick="openAddClassModal()" title="Add Extra Class" class="fancy-button text-white rounded-full w-10 h-10 flex items-center justify-center text-2xl font-bold pb-1">+</button>
                     </div>
-                    <div id="attendance-stats" class="text-center mt-4 space-y-1"></div>
+                    <div id="daily-schedule" class="space-y-4"></div>
+                </div>
+                <div id="action-buttons" class="flex flex-wrap justify-center items-center gap-4">
+                    <button onclick="saveData()" class="text-white px-8 py-3 rounded-lg fancy-button font-semibold text-lg">Save Attendance</button>
+                    <button onclick="clearTodaysAttendance()" class="text-red-500 border border-red-500 hover:bg-red-500 hover:text-white px-6 py-3 rounded-lg font-semibold text-lg transition">Clear Attendance</button>
+                    <button id="holiday-button" onclick="markDayAsHoliday()" class="text-blue-500 border border-blue-500 hover:bg-blue-500 hover:text-white px-6 py-3 rounded-lg font-semibold text-lg transition">Mark as Holiday</button>
                 </div>
             </div>
-        </main>
-    </div>
-   
-    <div id="toast-notification" class="text-white text-sm py-2 px-4 rounded-full shadow-lg"></div>
-    <div id="reminder-toast" class="text-white text-sm py-3 px-5 rounded-full shadow-2xl bg-indigo-500"></div>
-
-    <div id="summary-modal" class="modal-overlay">
-        <div class="modal-content w-full max-w-2xl">
-            <h3 class="text-2xl font-bold mb-6 text-center text-text-bold">Subject-wise Summary</h3>
-            <div id="subject-summary-content" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2"></div>
-            <div class="text-center mt-6">
-                <button onclick="closeModal('summary-modal')" class="text-white px-6 py-2 rounded-lg fancy-button">Close</button>
-            </div>
-        </div>
-    </div>
-    
-    <div id="progress-modal" class="modal-overlay">
-        <div class="modal-content w-full max-w-2xl">
-            <h3 class="text-2xl font-bold mb-6 text-center text-text-bold">Progress Tracker</h3>
-            <div id="progress-tracker-content" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2"></div>
-            <div class="text-center mt-6">
-                <button onclick="closeModal('progress-modal')" class="text-white px-6 py-2 rounded-lg fancy-button">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="profile-modal" class="modal-overlay">
-        <div class="modal-content w-full max-w-lg">
-            <h3 class="text-2xl font-bold mb-6 text-center text-text-bold">Profile Details</h3>
-            <div class="flex flex-col items-center text-center">
-                <img id="profile-picture" src="https://placehold.co/128x128/e0e0e0/757575?text=Upload" class="w-32 h-32 rounded-full mb-4 object-cover border-4 border-indigo-200">
-                <input type="file" id="profile-pic-upload" class="hidden" accept="image/*">
-                <button onclick="document.getElementById('profile-pic-upload').click()" class="text-sm text-indigo-600 hover:underline mb-6">Change Picture</button>
-                <div id="profile-details-content" class="text-left space-y-3 w-full"></div>
-            </div>
-            <div class="text-center mt-8">
-                <button onclick="closeModal('profile-modal')" class="text-white px-6 py-2 rounded-lg fancy-button">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="erase-modal" class="modal-overlay">
-        <div class="modal-content w-full max-w-md text-center">
-            <h3 class="text-2xl font-bold mb-4 text-red-600">Are you sure?</h3>
-            <p class="text-text-secondary mb-6">This will permanently delete all your saved attendance records. This action cannot be undone.</p>
-            <div class="flex justify-center space-x-4">
-                <button onclick="closeModal('erase-modal')" class="text-gray-700 bg-gray-200 hover:bg-gray-300 px-6 py-2 rounded-lg font-semibold transition">Cancel</button>
-                <button onclick="eraseAllData()" class="text-white bg-red-600 hover:bg-red-700 px-6 py-2 rounded-lg font-semibold transition">Yes, Erase Everything</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="analysis-modal" class="modal-overlay">
-        <div class="modal-content w-full max-w-3xl">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-bold text-text-bold">Attendance Trend Analysis</h3>
-                <div>
-                    <span class="text-sm font-medium mr-2">Sort by:</span>
-                    <select id="trend-sort" class="rounded-lg p-2 bg-gray-200 dark:bg-slate-600 text-text-primary">
-                        <option value="week">Week</option>
-                        <option value="month">Month</option>
-                    </select>
+            <div class="attendance-card rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-center mb-6 text-text-bold">Overall Summary</h2>
+                <div class="chart-container" style="position: relative; height:280px; width:100%; max-width: 350px; margin: auto;">
+                    <canvas id="attendanceChart"></canvas>
                 </div>
-            </div>
-            <div style="height: 400px;">
-                <canvas id="trendChart"></canvas>
-            </div>
-            <div class="text-center mt-6">
-                <button onclick="closeModal('analysis-modal')" class="text-white px-6 py-2 rounded-lg fancy-button">Close</button>
+                <div id="attendance-stats" class="text-center mt-4 space-y-1"></div>
             </div>
         </div>
-    </div>
-   
-    <div id="add-class-modal" class="modal-overlay">
-        <div class="modal-content w-full max-w-md">
-            <h3 class="text-2xl font-bold mb-6 text-center text-text-bold">Add Extra Class</h3>
-            <div class="space-y-4">
-                <div>
-                    <label for="extra-class-subject" class="block text-sm font-medium text-text-secondary">Subject</label>
-                    <select id="extra-class-subject" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white dark:bg-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select>
-                </div>
-                <div>
-                    <label for="extra-class-time" class="block text-sm font-medium text-text-secondary">Time (e.g., 14:00-15:00)</label>
-                    <input type="text" id="extra-class-time" placeholder="14:00-15:00" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white dark:bg-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                </div>
-            </div>
-            <div class="flex justify-center space-x-4 mt-6">
-                <button onclick="closeModal('add-class-modal')" class="text-gray-700 bg-gray-200 hover:bg-gray-300 px-6 py-2 rounded-lg font-semibold transition">Cancel</button>
-                <button onclick="handleAddClass()" class="text-white px-6 py-2 rounded-lg fancy-button">Add Class</button>
-            </div>
+    </main>
+  </div>
+ 
+  <div id="toast-notification" class="text-white text-sm py-2 px-4 rounded-full shadow-lg"></div>
+  <div id="reminder-toast" class="text-white text-sm py-3 px-5 rounded-full shadow-2xl bg-indigo-500"></div>
+
+  <div id="summary-modal" class="modal-overlay">
+    <div class="modal-content w-full max-w-2xl">
+        <h3 class="text-2xl font-bold mb-6 text-center text-text-bold">Subject-wise Summary</h3>
+        <div id="subject-summary-content" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2"></div>
+        <div class="text-center mt-6">
+            <button onclick="closeModal('summary-modal')" class="text-white px-6 py-2 rounded-lg fancy-button">Close</button>
         </div>
     </div>
-    
-    <div id="feedback-modal" class="modal-overlay">
-        <div class="modal-content w-full max-w-lg">
-            <h3 class="text-2xl font-bold mb-6 text-center text-text-bold">Send Feedback</h3>
-            <p class="text-text-secondary mb-4">Have a suggestion or found a bug? Let me know!</p>
-            <textarea id="feedback-text" class="w-full h-32 p-3 border border-gray-300 rounded-md bg-white dark:bg-slate-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Type your feedback here..."></textarea>
-            <div class="flex justify-center space-x-4 mt-6">
-                <button onclick="closeModal('feedback-modal')" class="text-gray-700 bg-gray-200 hover:bg-gray-300 px-6 py-2 rounded-lg font-semibold transition">Cancel</button>
-                <button onclick="sendFeedback()" class="text-white px-6 py-2 rounded-lg fancy-button">Send Feedback</button>
-            </div>
+  </div>
+ 
+  <div id="progress-modal" class="modal-overlay">
+    <div class="modal-content w-full max-w-2xl">
+        <h3 class="text-2xl font-bold mb-6 text-center text-text-bold">Progress Tracker</h3>
+        <div id="progress-tracker-content" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2"></div>
+        <div class="text-center mt-6">
+            <button onclick="closeModal('progress-modal')" class="text-white px-6 py-2 rounded-lg fancy-button">Close</button>
         </div>
     </div>
+  </div>
 
-    <script>
-        const scheduleData = {
-            "Monday": [{ time: "9:15-10:10", subject: "LST" }, { time: "10:10-11:05", subject: "DM" },{ time: "11:05-12:55", subject: "Lab", type: "lab", details: {A2: "Data Science LAB", A3: "Java LAB", A1: "Data Structure LAB"} },{ time: "12:55-1:45", type: "lunch" },{ time: "1:45-2:45", subject: "JAVA" }, { time: "2:45-3:45", subject: "IDS" }],
-            "Tuesday": [{ time: "9:15-10:10", subject: "DM" }, { time: "10:10-11:05", subject: "DS" },{ time: "11:05-12:00", subject: "LST" }, { time: "12:00-12:55", subject: "ETC" },{ time: "12:55-1:45", type: "lunch" },{ time: "1:45-2:45", subject: "P&S" }, { time: "2:45-3:45", type: "empty" }],
-            "Wednesday": [{ time: "9:15-11:05", subject: "Lab", type: "lab", details: {A2: "Data Structure LAB", A3: "Data Science LAB", A1: "Java LAB"} },{ time: "11:05-12:00", subject: "JAVA" }, { time: "12:00-12:55", subject: "DM" },{ time: "12:55-1:45", type: "lunch" },{ time: "1:45-2:45", subject: "P&S" }, { time: "2:45-3:45", subject: "ETC" }],
-            "Thursday": [{ time: "9:15-10:10", subject: "ETC" }, { time: "10:10-11:05", subject: "IDS" },{ time: "11:05-12:00", subject: "JAVA" }, { time: "12:00-12:55", subject: "DS" },{ time: "12:55-1:45", type: "lunch" },{ time: "1:45-3:45", subject: "Lab", type: "lab", details: {A1: "Data Science LAB", A2: "Java LAB", A3: "Data Structure LAB"} }],
-            "Friday": [{ time: "9:15-10:10", subject: "IDS" }, { time: "10:10-11:05", subject: "DS" },{ time: "11:05-12:00", subject: "LST" }, { time: "12:00-12:55", subject: "P&S" },{ time: "12:55-1:45", type: "lunch" },{ time: "1:45-2:45", type: "empty" }, { time: "2:45-3:45", type: "empty" }]
-        };
-        const courseDetails = [
-            { abbr: "P&S", title: "PROBABILITY & STATISTICS" }, { abbr: "IDS", title: "INTRODUCTION TO DATA SCIENCE" }, { abbr: "DS", title: "DATA STRUCTURES" }, { abbr: "DM", title: "DISCRETE MATHEMATICS" }, { abbr: "JAVA", title: "OOPS USING JAVA" }, { abbr: "LST", title: "LOGIC SWITCHING THEORY" }, { abbr: "ETC", title: "EFFECTIVE TECHNICAL COMMUNICATION IN ENGLISH" }, { abbr: "Lab", title: "LABORATORY SESSION" }, { abbr: "Data Structure LAB", title: "DATA STRUCTURES LAB" }, { abbr: "Data Science LAB", title: "DATA SCIENCE LAB" }, { abbr: "Java LAB", title: "OOPS USING JAVA LAB" }
-        ];
+  <div id="profile-modal" class="modal-overlay">
+    <div class="modal-content w-full max-w-lg">
+        <h3 class="text-2xl font-bold mb-6 text-center text-text-bold">Profile Details</h3>
+        <div class="flex flex-col items-center text-center">
+            <img id="profile-picture" src="https://placehold.co/128x128/e0e0e0/757575?text=Upload" class="w-32 h-32 rounded-full mb-4 object-cover border-4 border-indigo-200">
+            <input type="file" id="profile-pic-upload" class="hidden" accept="image/*">
+            <button onclick="document.getElementById('profile-pic-upload').click()" class="text-sm text-indigo-600 hover:underline mb-6">Change Picture</button>
+            <div id="profile-details-content" class="text-left space-y-3 w-full"></div>
+        </div>
+        <div class="text-center mt-8">
+            <button onclick="closeModal('profile-modal')" class="text-white px-6 py-2 rounded-lg fancy-button">Close</button>
+        </div>
+    </div>
+  </div>
 
-        let attendanceData = {};
-        let tempAttendanceData = {};
-        let extraClasses = {};
-        let holidays = [];
-        let attendanceChart, trendChart;
-        let selectedDate = new Date();
-        let reminderTimeouts = [];
-        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  <div id="erase-modal" class="modal-overlay">
+    <div class="modal-content w-full max-w-md text-center">
+        <h3 class="text-2xl font-bold mb-4 text-red-600">Are you sure?</h3>
+        <p class="text-text-secondary mb-6">This will permanently delete all your saved attendance records. This action cannot be undone.</p>
+        <div class="flex justify-center space-x-4">
+            <button onclick="closeModal('erase-modal')" class="text-gray-700 bg-gray-200 hover:bg-gray-300 px-6 py-2 rounded-lg font-semibold transition">Cancel</button>
+            <button onclick="eraseAllData()" class="text-white bg-red-600 hover:bg-red-700 px-6 py-2 rounded-lg font-semibold transition">Yes, Erase Everything</button>
+        </div>
+    </div>
+  </div>
 
-        // --- GLOBAL FUNCTIONS ACCESSIBLE VIA on... ATTRIBUTES ---
-        function handleLogin() {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-            const loginError = document.getElementById('login-error');
-            const passwordRegex = /^160424750\d{3}$/;
+  <div id="analysis-modal" class="modal-overlay">
+    <div class="modal-content w-full max-w-3xl">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-text-bold">Attendance Trend Analysis</h3>
+            <div>
+                <span class="text-sm font-medium mr-2">Sort by:</span>
+                <select id="trend-sort" class="rounded-lg p-2 bg-gray-200 dark:bg-slate-600 text-text-primary">
+                    <option value="day">Day</option>
+                    <option value="week">Week</option>
+                    <option value="month">Month</option>
+                </select>
+            </div>
+        </div>
+        <div style="height: 400px;">
+            <canvas id="trendChart"></canvas>
+        </div>
+        <div class="text-center mt-6">
+            <button onclick="closeModal('analysis-modal')" class="text-white px-6 py-2 rounded-lg fancy-button">Close</button>
+        </div>
+    </div>
+  </div>
+ 
+  <div id="add-class-modal" class="modal-overlay">
+    <div class="modal-content w-full max-w-md">
+        <h3 class="text-2xl font-bold mb-6 text-center text-text-bold">Add Extra Class</h3>
+        <div class="space-y-4">
+            <div>
+                <label for="extra-class-subject" class="block text-sm font-medium text-text-secondary">Subject</label>
+                <select id="extra-class-subject" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white dark:bg-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select>
+            </div>
+            <div>
+                <label for="extra-class-time" class="block text-sm font-medium text-text-secondary">Time (e.g., 14:00-15:00)</label>
+                <input type="text" id="extra-class-time" placeholder="14:00-15:00" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white dark:bg-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+        </div>
+        <div class="flex justify-center space-x-4 mt-6">
+            <button onclick="closeModal('add-class-modal')" class="text-gray-700 bg-gray-200 hover:bg-gray-300 px-6 py-2 rounded-lg font-semibold transition">Cancel</button>
+            <button onclick="handleAddClass()" class="text-white px-6 py-2 rounded-lg fancy-button">Add Class</button>
+        </div>
+    </div>
+  </div>
+ 
+  <div id="feedback-modal" class="modal-overlay">
+    <div class="modal-content w-full max-w-lg">
+        <h3 class="text-2xl font-bold mb-6 text-center text-text-bold">Send Feedback</h3>
+        <p class="text-text-secondary mb-4">Have a suggestion or found a bug? Let me know!</p>
+        <textarea id="feedback-text" class="w-full h-32 p-3 border border-gray-300 rounded-md bg-white dark:bg-slate-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Type your feedback here..."></textarea>
+        <div class="flex justify-center space-x-4 mt-6">
+            <button onclick="closeModal('feedback-modal')" class="text-gray-700 bg-gray-200 hover:bg-gray-300 px-6 py-2 rounded-lg font-semibold transition">Cancel</button>
+            <button onclick="sendFeedback()" class="text-white px-6 py-2 rounded-lg fancy-button">Send Feedback</button>
+        </div>
+    </div>
+  </div>
 
-            if (!username || !passwordRegex.test(password)) {
-                loginError.innerHTML = 'Invalid username or password format. Please check the requirements below.';
-                loginError.classList.remove('hidden'); return;
-            }
-           
-            const rollNumber = parseInt(password.slice(-3));
-            let batch = (rollNumber >= 0 && rollNumber <= 20) ? 'A1' : (rollNumber >= 21 && rollNumber <= 40) ? 'A2' : 'A3';
+  <div id="about-modal" class="modal-overlay">
+    <div class="modal-content w-full max-w-lg">
+        <h3 class="text-2xl font-bold mb-6 text-center text-text-bold">About SmartAttend Pro</h3>
+        <div class="space-y-4 text-text-primary">
+            <p><strong>SmartAttend Pro</strong> is designed and developed by <strong>Waheed Mujtaba</strong> to help students effortlessly track their attendance.</p>
+            <p><strong>Key Features:</strong></p>
+            <ul class="list-disc list-inside space-y-2">
+                <li>Daily schedule view with easy attendance marking.</li>
+                <li>Overall and subject-wise attendance summary.</li>
+                <li>Progress tracker to monitor your attendance percentage.</li>
+                <li>Trend analysis to visualize your attendance over time.</li>
+                <li>Customizable with dark mode and profile picture upload.</li>
+                <li>Set reminders for your classes.</li>
+                <li>Export and import your attendance data.</li>
+            </ul>
+            <p class="text-center mt-6">
+                Follow me on Instagram: 
+                <a href="https://www.instagram.com/zaid_6907_mujtaba/" target="_blank" class="text-indigo-600 hover:underline">@zaid_6907_mujtaba</a>
+            </p>
+        </div>
+        <div class="text-center mt-6">
+            <button onclick="closeModal('about-modal')" class="text-white px-6 py-2 rounded-lg fancy-button">Close</button>
+        </div>
+    </div>
+  </div>
 
-            loginError.classList.add('hidden');
-            const userData = { name: username, batch: batch, password: password };
-            localStorage.setItem('smartAttendUser', JSON.stringify(userData));
-            checkAuth();
+  <div id="report-modal" class="modal-overlay">
+    <div class="modal-content w-full max-w-4xl">
+        <h3 class="text-2xl font-bold mb-6 text-center text-text-bold">Attendance Report</h3>
+        <div id="report-content" class="max-h-[60vh] overflow-y-auto pr-2"></div>
+        <div class="text-center mt-6">
+            <button onclick="downloadReport()" class="text-white px-6 py-2 rounded-lg fancy-button">Download Report</button>
+            <button onclick="closeModal('report-modal')" class="text-gray-700 bg-gray-200 hover:bg-gray-300 px-6 py-2 rounded-lg font-semibold transition">Close</button>
+        </div>
+    </div>
+  </div>
+
+  <div id="schedule-modal" class="modal-overlay">
+    <div class="modal-content w-full max-w-4xl">
+        <h3 class="text-2xl font-bold mb-6 text-center text-text-bold">Weekly Schedule</h3>
+        <div id="schedule-content" class="max-h-[60vh] overflow-y-auto pr-2"></div>
+        <div class="text-center mt-6">
+            <button onclick="closeModal('schedule-modal')" class="text-white px-6 py-2 rounded-lg fancy-button">Close</button>
+        </div>
+    </div>
+  </div>
+
+  <div id="import-export-modal" class="modal-overlay">
+    <div class="modal-content w-full max-w-lg">
+        <h3 class="text-2xl font-bold mb-6 text-center text-text-bold">Export / Import Data</h3>
+        <div class="space-y-6">
+            <div class="p-4 border rounded-lg">
+                <h4 class="font-semibold text-lg mb-2">Export Data</h4>
+                <p class="text-text-secondary mb-4">Download all your attendance data as a mobile-friendly text file. You can use this file to transfer your data to another device.</p>
+                <button onclick="exportData()" class="w-full text-white px-6 py-2 rounded-lg fancy-button">Export My Data</button>
+            </div>
+            <div class="p-4 border rounded-lg">
+                <h4 class="font-semibold text-lg mb-2">Import Data</h4>
+                <p class="text-text-secondary mb-4">Select a previously exported data file to restore your attendance records. <strong class="text-red-500">This will overwrite any existing data.</strong></p>
+                <input type="file" id="import-file-input" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100" accept=".txt,text/plain,application/json">
+            </div>
+        </div>
+        <div class="text-center mt-8">
+            <button onclick="closeModal('import-export-modal')" class="text-gray-700 bg-gray-200 hover:bg-gray-300 px-6 py-2 rounded-lg font-semibold transition">Close</button>
+        </div>
+    </div>
+  </div>
+
+  <div id="version-modal" class="modal-overlay">
+    <div class="modal-content w-full max-w-sm text-center">
+        <h3 class="text-2xl font-bold mb-4 text-text-bold">App Version</h3>
+        <p class="text-4xl font-bold text-indigo-600 mb-2">3.5</p>
+        <p class="text-text-secondary">You are on the latest version.</p>
+        <div class="text-center mt-6">
+            <button onclick="closeModal('version-modal')" class="text-white px-6 py-2 rounded-lg fancy-button">OK</button>
+        </div>
+    </div>
+  </div>
+
+  <div id="settings-modal" class="modal-overlay">
+    <div class="modal-content w-full max-w-lg">
+        <h3 class="text-2xl font-bold mb-6 text-center text-text-bold">Settings</h3>
+        <div class="space-y-4">
+            <div class="flex justify-between items-center p-4 border rounded-lg">
+                <span class="text-lg font-medium">Set Reminders</span>
+                <label class="switch">
+                    <input type="checkbox" id="settings-reminder-toggle" onchange="toggleReminders(event)">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div class="flex justify-between items-center p-4 border rounded-lg">
+                <span class="text-lg font-medium">Check Version</span>
+                <button onclick="showVersionModal(true)" class="text-white px-4 py-2 rounded-lg fancy-button text-sm">Check</button>
+            </div>
+            <div class="flex justify-between items-center p-4 border rounded-lg bg-red-50 dark:bg-red-900/20">
+                <span class="text-lg font-medium text-red-600">Erase All Data</span>
+                <button onclick="confirmEraseAllData(true)" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition text-sm">Erase</button>
+            </div>
+        </div>
+        <div class="text-center mt-8">
+            <button onclick="closeModal('settings-modal')" class="text-gray-700 bg-gray-200 hover:bg-gray-300 px-6 py-2 rounded-lg font-semibold transition">Close</button>
+        </div>
+    </div>
+  </div>
+ 
+  <!-- New Download Modal -->
+  <div id="download-modal" class="modal-overlay">
+    <div class="modal-content w-full max-w-sm text-center">
+        <h3 id="download-title" class="text-2xl font-bold mb-4 text-text-bold">File Ready</h3>
+        <p id="download-message" class="text-text-secondary mb-6">Your file is ready to be downloaded.</p>
+        <div class="flex flex-col space-y-4">
+            <a id="download-link" href="#" download="" class="w-full text-white px-6 py-3 rounded-lg fancy-button font-semibold text-lg">Download Now</a>
+            <button onclick="closeDownloadModal()" class="text-gray-700 bg-gray-200 hover:bg-gray-300 px-6 py-2 rounded-lg font-semibold transition">Cancel</button>
+        </div>
+    </div>
+  </div>
+
+
+  <script>
+    // --- UPDATED SCHEDULE DATA ---
+    const scheduleData = {
+        "Monday": [
+            { time: "9:15-11:05", subject: "Lab", type: "lab", details: { "A1": "Data Structure LAB", "A2": "Data Science LAB", "A3": "Java LAB" } },
+            { time: "11:05-12:00", subject: "LST" },
+            { time: "12:00-12:55", subject: "ETC" },
+            { time: "12:55-1:45", type: "lunch" },
+            { time: "1:45-2:45", subject: "JAVA" },
+            { time: "2:45-3:45", subject: "IDS" }
+        ],
+        "Tuesday": [
+            { time: "9:15-10:10", subject: "LST" },
+            { time: "10:10-11:05", subject: "DM" },
+            { time: "11:05-12:00", subject: "IDS" },
+            { time: "12:00-12:55", subject: "JAVA" },
+            { time: "12:55-1:45", type: "lunch" },
+            { time: "1:45-2:45", subject: "P&S" },
+            { time: "2:45-3:45", type: "empty" }
+        ],
+        "Wednesday": [
+            { time: "9:15-11:05", subject: "Lab", type: "lab", details: { "A1": "Java LAB", "A2": "Data Structure LAB", "A3": "Data Science LAB" } },
+            { time: "11:05-12:00", subject: "JAVA" },
+            { time: "12:00-12:55", subject: "ETC" },
+            { time: "12:55-1:45", type: "lunch" },
+            { time: "1:45-2:45", subject: "P&S" },
+            { time: "2:45-3:45", subject: "DS" }
+        ],
+        "Thursday": [
+            { time: "9:15-10:10", subject: "IDS" },
+            { time: "10:10-11:05", subject: "DM" },
+            { time: "11:05-12:00", subject: "DS" },
+            { time: "12:00-12:55", subject: "LST" },
+            { time: "12:55-1:45", type: "lunch" },
+            { time: "1:45-3:45", subject: "Lab", type: "lab", details: { "A1": "Data Science LAB", "A2": "Java LAB", "A3": "Data Structure LAB" } }
+        ],
+        "Friday": [
+            { time: "9:15-10:10", subject: "ETC" },
+            { time: "10:10-11:05", subject: "DS" },
+            { time: "11:05-12:00", subject: "DM" },
+            { time: "12:00-12:55", subject: "P&S" },
+            { time: "12:55-1:45", type: "lunch" },
+            { time: "1:45-2:45", type: "empty" },
+            { time: "2:45-3:45", type: "empty" }
+        ]
+    };
+
+    const courseDetails = [
+        { abbr: "P&S", title: "PROBABILITY & STATISTICS" },
+        { abbr: "IDS", title: "INTRODUCTION TO DATA SCIENCE" },
+        { abbr: "DS", title: "DATA STRUCTURES" },
+        { abbr: "DM", title: "DISCRETE MATHEMATICS" },
+        { abbr: "JAVA", title: "OOPS USING JAVA" },
+        { abbr: "LST", title: "LOGIC SWITCHING THEORY" },
+        { abbr: "ETC", title: "EFFECTIVE TECHNICAL COMMUNICATION IN ENGLISH" },
+        { abbr: "Lab", title: "LABORATORY SESSION" },
+        { abbr: "Data Structure LAB", title: "DATA STRUCTURES LAB" },
+        { abbr: "Data Science LAB", title: "DATA SCIENCE LAB" },
+        { abbr: "Java LAB", title: "OOPS USING JAVA LAB" }
+    ];
+
+    let attendanceData = {};
+    let tempAttendanceData = {};
+    let extraClasses = {};
+    let holidays = [];
+    let dailyRemovedClasses = {};
+    let attendanceChart, trendChart;
+    let selectedDate = new Date();
+    let reminderTimeouts = [];
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    let audioCtx;
+    let currentDownloadUrl = null;
+
+
+    // --- SOUND EFFECTS ---
+    function playSound(type = 'click') {
+        if (!audioCtx) return;
+
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (type === 'click') {
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.1);
+        } else if (type === 'save') {
+            oscillator.type = 'triangle';
+            oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.05);
+            gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.1);
+        }
+
+        oscillator.start(audioCtx.currentTime);
+        oscillator.stop(audioCtx.currentTime + 0.1);
+    }
+
+
+    // --- GLOBAL FUNCTIONS ACCESSIBLE VIA on... ATTRIBUTES ---
+    function handleLogin() {
+        playSound('save');
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const loginError = document.getElementById('login-error');
+        const passwordRegex = /^160424750\d{3}$/;
+
+        if (!username || !passwordRegex.test(password)) {
+            loginError.innerHTML = 'Invalid username or password format. Please check the requirements below.';
+            loginError.classList.remove('hidden'); return;
         }
        
-        function handleLogout() { localStorage.removeItem('smartAttendUser'); window.location.reload(); }
-        function togglePasswordVisibility() { const p = document.getElementById('password'); p.type = p.type === 'password' ? 'text' : 'password'; }
-        function toggleMenu() { document.getElementById('sidebar-menu').classList.toggle('open'); document.getElementById('sidebar-overlay').classList.toggle('visible'); }
-        function openModal(modalId) { document.getElementById(modalId).classList.add('visible'); }
-        function closeModal(modalId) { document.getElementById(modalId).classList.remove('visible'); }
-        function markTempAttendance(classId, status) { tempAttendanceData[classId] = (tempAttendanceData.hasOwnProperty(classId) && tempAttendanceData[classId] === status) ? undefined : status; renderDailySchedule(); }
-        function saveData() {
-            Object.keys(tempAttendanceData).forEach(classId => {
-                if (tempAttendanceData[classId] === undefined) delete attendanceData[classId];
-                else attendanceData[classId] = tempAttendanceData[classId];
-            });
-            tempAttendanceData = {};
+        const rollNumber = parseInt(password.slice(-3));
+        let batch = (rollNumber >= 0 && rollNumber <= 20) ? 'A1' : (rollNumber >= 21 && rollNumber <= 40) ? 'A2' : 'A3';
+
+        loginError.classList.add('hidden');
+        const userData = { name: username, batch: batch, password: password };
+        localStorage.setItem('smartAttendUser', JSON.stringify(userData));
+        checkAuth();
+    }
+   
+    function handleLogout() { localStorage.removeItem('smartAttendUser'); window.location.reload(); }
+    function togglePasswordVisibility() { const p = document.getElementById('password'); p.type = p.type === 'password' ? 'text' : 'password'; }
+    function toggleMenu() { 
+        playSound('click');
+        document.getElementById('sidebar-menu').classList.toggle('open'); 
+        document.getElementById('sidebar-overlay').classList.toggle('visible'); 
+    }
+    function openModal(modalId) { 
+        playSound('click');
+        document.getElementById(modalId).classList.add('visible'); 
+    }
+    function closeModal(modalId) { 
+        playSound('click');
+        document.getElementById(modalId).classList.remove('visible'); 
+    }
+    function markTempAttendance(classId, status) { 
+        playSound('click');
+        tempAttendanceData[classId] = (tempAttendanceData.hasOwnProperty(classId) && tempAttendanceData[classId] === status) ? undefined : status; 
+        renderDailySchedule(); 
+    }
+    function saveData() {
+        playSound('save');
+        Object.keys(tempAttendanceData).forEach(classId => {
+            if (tempAttendanceData[classId] === undefined) delete attendanceData[classId];
+            else attendanceData[classId] = tempAttendanceData[classId];
+        });
+        tempAttendanceData = {};
+        const userData = JSON.parse(localStorage.getItem('smartAttendUser'));
+        localStorage.setItem(`smartAttendData_${userData.name}`, JSON.stringify(attendanceData));
+        updateAllAnalytics();
+        showToast();
+    }
+    function clearTodaysAttendance() {
+        playSound('click');
+        const dateString = selectedDate.toISOString().split('T')[0];
+        tempAttendanceData = {};
+        let cleared = false;
+        Object.keys(attendanceData).forEach(classId => {
+            if (classId.startsWith(dateString)) {
+                delete attendanceData[classId];
+                cleared = true;
+            }
+        });
+        if (extraClasses[dateString]) {
+            delete extraClasses[dateString];
+            const userData = JSON.parse(localStorage.getItem('smartAttendUser'));
+            localStorage.setItem(`smartAttendExtraClasses_${userData.name}`, JSON.stringify(extraClasses));
+        }
+       
+        renderDailySchedule();
+        if (cleared) {
             const userData = JSON.parse(localStorage.getItem('smartAttendUser'));
             localStorage.setItem(`smartAttendData_${userData.name}`, JSON.stringify(attendanceData));
             updateAllAnalytics();
-            showToast();
+            showToast("Today's attendance cleared", 'bg-blue-500');
         }
-        function clearTodaysAttendance() {
-            const dateString = selectedDate.toISOString().split('T')[0];
-            tempAttendanceData = {};
-            let cleared = false;
-            Object.keys(attendanceData).forEach(classId => {
-                if (classId.startsWith(dateString)) {
-                    delete attendanceData[classId];
-                    cleared = true;
+    }
+    function confirmEraseAllData(fromSettings = false) { 
+        if(fromSettings) closeModal('settings-modal');
+        else toggleMenu(); 
+        openModal('erase-modal'); 
+    }
+    function eraseAllData() {
+        playSound('click');
+        attendanceData = {}; tempAttendanceData = {}; extraClasses = {}; holidays = [];
+        const userData = JSON.parse(localStorage.getItem('smartAttendUser'));
+        localStorage.removeItem(`smartAttendData_${userData.name}`);
+        localStorage.removeItem(`smartAttendProfilePic_${userData.name}`);
+        localStorage.removeItem(`smartAttendHolidays_${userData.name}`);
+        localStorage.removeItem(`smartAttendExtraClasses_${userData.name}`);
+        localStorage.removeItem(`smartAttendRemovedClasses_${userData.name}`);
+        closeModal('erase-modal');
+        renderDailySchedule();
+        updateAllAnalytics();
+        showToast('All data erased successfully!', 'bg-red-500');
+    }
+    function showAnalysisModal() { 
+        toggleMenu(); 
+        openModal('analysis-modal'); 
+        if (document.getElementById('analysis-modal').classList.contains('visible')) {
+            renderTrendChart(document.getElementById('trend-sort').value); 
+        }
+    }
+    function openAddClassModal() {
+        playSound('click');
+        const select = document.getElementById('extra-class-subject');
+        select.innerHTML = courseDetails.map(c => `<option value="${c.abbr}">${c.title}</option>`).join('');
+        document.getElementById('extra-class-time').value = '';
+        openModal('add-class-modal');
+    }
+    function handleAddClass() {
+        playSound('save');
+        const subject = document.getElementById('extra-class-subject').value;
+        const time = document.getElementById('extra-class-time').value.trim();
+        if (!subject || !time) { 
+            showToast('Please fill in both subject and time.', 'bg-red-500'); 
+            return; 
+        }
+       
+        const dateString = selectedDate.toISOString().split('T')[0];
+        if (!extraClasses[dateString]) extraClasses[dateString] = [];
+        extraClasses[dateString].push({ time, subject, type: 'extra' });
+       
+        const userData = JSON.parse(localStorage.getItem('smartAttendUser'));
+        localStorage.setItem(`smartAttendExtraClasses_${userData.name}`, JSON.stringify(extraClasses));
+
+        closeModal('add-class-modal');
+        renderDailySchedule();
+        scheduleRemindersForToday();
+        showToast('Extra class added for today', 'bg-blue-500');
+    }
+    function toggleDarkMode() {
+        playSound('click');
+        const isChecked = document.getElementById('dark-mode-toggle').checked;
+        const theme = isChecked ? 'dark' : 'light';
+        document.documentElement.className = theme;
+        localStorage.setItem('smartAttendTheme', theme);
+        if (attendanceChart) {
+            attendanceChart.destroy();
+            attendanceChart = null; 
+        }
+        updateAllAnalytics();
+    }
+   
+    function getSubjectStats() {
+        const subjectStats = {};
+        courseDetails.forEach(c => { 
+            subjectStats[c.abbr] = { present: 0, absent: 0, cancelled: 0, total: 0, title: c.title }; 
+        });
+
+        for (const classId in attendanceData) {
+            const date = classId.split('|')[0];
+            if(holidays.includes(date)) continue;
+
+            const subjectAbbr = classId.split('|')[1];
+            if (subjectStats[subjectAbbr]) {
+                const status = attendanceData[classId];
+                if (subjectStats[subjectAbbr][status] !== undefined) {
+                    subjectStats[subjectAbbr][status]++;
                 }
-            });
-            if (extraClasses[dateString]) extraClasses[dateString] = [];
-           
-            renderDailySchedule();
-            if (cleared) {
-                const userData = JSON.parse(localStorage.getItem('smartAttendUser'));
-                localStorage.setItem(`smartAttendData_${userData.name}`, JSON.stringify(attendanceData));
-                updateAllAnalytics();
-                showToast("Today's attendance cleared", 'bg-blue-500');
+                subjectStats[subjectAbbr].total++;
             }
         }
-        function confirmEraseAllData() { toggleMenu(); openModal('erase-modal'); }
-        function eraseAllData() {
-            attendanceData = {}; tempAttendanceData = {}; extraClasses = {}; holidays = [];
-            const userData = JSON.parse(localStorage.getItem('smartAttendUser'));
-            localStorage.removeItem(`smartAttendData_${userData.name}`);
-            localStorage.removeItem(`smartAttendProfilePic_${userData.name}`);
-            localStorage.removeItem(`smartAttendHolidays_${userData.name}`);
-            closeModal('erase-modal');
-            renderDailySchedule();
-            updateAllAnalytics();
-            showToast('All data erased successfully!', 'bg-red-500');
+        return subjectStats;
+    }
+
+    function calculatePrediction(present, conducted, classesToAttend) {
+        if (isNaN(present) || isNaN(conducted) || isNaN(classesToAttend) || classesToAttend <= 0) {
+            return null;
         }
-        function showAnalysisModal() { toggleMenu(); openModal('analysis-modal'); renderTrendChart(document.getElementById('trend-sort').value); }
-        function openAddClassModal() {
-            const select = document.getElementById('extra-class-subject');
-            select.innerHTML = courseDetails.map(c => `<option value="${c.abbr}">${c.title}</option>`).join('');
-            document.getElementById('extra-class-time').value = '';
-            openModal('add-class-modal');
+        const futurePresent = present + classesToAttend;
+        const futureConducted = conducted + classesToAttend;
+        if (futureConducted === 0) {
+            return 100;
         }
-        function handleAddClass() {
-            const subject = document.getElementById('extra-class-subject').value;
-            const time = document.getElementById('extra-class-time').value.trim();
-            if (!subject || !time) { 
-                showToast('Please fill in both subject and time.', 'bg-red-500'); 
-                return; 
-            }
-           
-            const dateString = selectedDate.toISOString().split('T')[0];
-            if (!extraClasses[dateString]) extraClasses[dateString] = [];
-            extraClasses[dateString].push({ time, subject, type: 'extra' });
-           
-            closeModal('add-class-modal');
-            renderDailySchedule();
-            scheduleRemindersForToday();
-            showToast('Extra class added for today', 'bg-blue-500');
-        }
-        function toggleDarkMode() {
-            const isChecked = document.getElementById('dark-mode-toggle').checked;
-            const theme = isChecked ? 'dark' : 'light';
-            document.documentElement.className = theme;
-            localStorage.setItem('smartAttendTheme', theme);
-            initChart();
-            updateAllAnalytics();
-        }
-        
-        function getSubjectStats() {
-            const subjectStats = {};
-            courseDetails.forEach(c => { 
-                subjectStats[c.abbr] = { present: 0, absent: 0, cancelled: 0, total: 0, title: c.title }; 
-            });
+        return (futurePresent / futureConducted) * 100;
+    }
 
-            for (const classId in attendanceData) {
-                const date = classId.split('|')[0];
-                if(holidays.includes(date)) continue;
+    function showSummaryModal() {
+        toggleMenu();
+        const summaryContent = document.getElementById('subject-summary-content');
+        summaryContent.innerHTML = '';
+        const subjectStats = getSubjectStats();
 
-                const subjectAbbr = classId.split('|')[1];
-                if (subjectStats[subjectAbbr]) {
-                    const status = attendanceData[classId];
-                    if (subjectStats[subjectAbbr][status] !== undefined) {
-                        subjectStats[subjectAbbr][status]++;
-                    }
-                    subjectStats[subjectAbbr].total++;
-                }
-            }
-            return subjectStats;
-        }
-
-        function showSummaryModal() {
-            toggleMenu();
-            const summaryContent = document.getElementById('subject-summary-content');
-            summaryContent.innerHTML = '';
-            const subjectStats = getSubjectStats();
-
-            for (const subject in subjectStats) {
-                const stats = subjectStats[subject];
-                if (stats.total === 0) continue;
-                const conductedClasses = stats.present + stats.absent;
-                const percentage = conductedClasses > 0 ? ((stats.present / conductedClasses) * 100).toFixed(1) : '0.0';
-                const subjectDiv = document.createElement('div');
-                subjectDiv.className = 'p-4 border rounded-lg bg-slate-50 dark:bg-slate-600';
-                subjectDiv.innerHTML = `
-                    <div class="flex justify-between items-baseline">
-                        <h4 class="font-bold text-lg text-bold font-subject">${stats.title}</h4>
-                        <span class="text-2xl font-bold text-indigo-600">${percentage}%</span>
-                    </div>
-                    <p class="text-sm text-secondary mb-2">${subject}: ${stats.present} attended / ${conductedClasses} conducted</p>
-                    <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-indigo-500 h-2 rounded-full" style="width: ${percentage}%"></div></div>
-                    <div class="text-xs text-right text-secondary mt-1"><span>P: ${stats.present}</span> &bull; <span>A: ${stats.absent}</span> &bull; <span>C: ${stats.cancelled}</span></div>`;
-                summaryContent.appendChild(subjectDiv);
-            }
-            openModal('summary-modal');
-        }
-        
-        function showProgressTrackerModal() {
-            toggleMenu();
-            const content = document.getElementById('progress-tracker-content');
-            content.innerHTML = '';
-            const subjectStats = getSubjectStats();
-
-            for (const subject in subjectStats) {
-                const stats = subjectStats[subject];
-                const conducted = stats.present + stats.absent;
-                if (conducted === 0) continue;
-                const percentage = ((stats.present / conducted) * 100);
-                const color = percentage >= 75 ? 'bg-green-500' : percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500';
-
-                const subjectDiv = document.createElement('div');
-                subjectDiv.className = 'p-3 rounded-lg';
-                subjectDiv.innerHTML = `
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-bold text-bold font-subject">${stats.title}</span>
-                        <span class="font-semibold text-sm ${percentage < 75 ? 'text-red-500' : 'text-green-500'}">${percentage.toFixed(1)}%</span>
-                    </div>
-                    <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-4">
-                        <div class="${color} h-4 rounded-full text-center text-white text-xs font-bold flex items-center justify-center" style="width: ${percentage}%">${stats.present}/${conducted}</div>
-                    </div>`;
-                content.appendChild(subjectDiv);
-            }
-            openModal('progress-modal');
-        }
-
-        function showProfileModal() {
-            toggleMenu();
-            const userData = JSON.parse(localStorage.getItem('smartAttendUser'));
-            const profilePic = localStorage.getItem(`smartAttendProfilePic_${userData.name}`);
-            if (profilePic) {
-                document.getElementById('profile-picture').src = profilePic;
-            }
-
-            const password = userData.password;
-            let college = "Not specified";
-            if (password.startsWith('1604')) {
-                college = "Muffakham Jah College of Engineering (MJCET)";
-            }
+        for (const subject in subjectStats) {
+            const stats = subjectStats[subject];
+            if (stats.total === 0) continue;
+            const conductedClasses = stats.present + stats.absent;
+            const percentage = conductedClasses > 0 ? ((stats.present / conductedClasses) * 100).toFixed(1) : '0.0';
             
-            let branch = "Not specified";
-            const branchCode = password.substring(6, 9);
-            if (branchCode === '750') branch = "CSE (Data Science)";
-            else if (branchCode === '733') branch = "Computer Science and Engineering";
-            else if (branchCode === '748') branch = "CSE (AI & ML)";
+            const prediction = calculatePrediction(stats.present, conductedClasses, 5);
+            let predictionHTML = '';
+            if (prediction !== null) {
+                predictionHTML = `<p class="text-xs text-blue-500 dark:text-blue-400 mt-2">💡 If you attend the next 5 classes, your attendance will be <strong>${prediction.toFixed(1)}%</strong>.</p>`;
+            }
 
-            const content = document.getElementById('profile-details-content');
-            content.innerHTML = `
-                <p><strong class="font-semibold text-text-secondary w-24 inline-block">Name:</strong> <span class="text-bold">${userData.name}</span></p>
-                <p><strong class="font-semibold text-text-secondary w-24 inline-block">Batch:</strong> <span class="text-bold">${userData.batch}</span></p>
-                <p><strong class="font-semibold text-text-secondary w-24 inline-block">College:</strong> <span class="text-bold">${college}</span></p>
-                <p><strong class="font-semibold text-text-secondary w-24 inline-block">Branch:</strong> <span class="text-bold">${branch}</span></p>
+            const subjectDiv = document.createElement('div');
+            subjectDiv.className = 'subject-summary-card p-4 border rounded-lg';
+            subjectDiv.innerHTML = `
+                <div class="flex justify-between items-baseline">
+                    <h4 class="font-bold text-lg text-bold font-subject">${stats.title}</h4>
+                    <span class="text-2xl font-bold text-indigo-600">${percentage}%</span>
+                </div>
+                <p class="text-sm text-secondary mb-2">${subject}: ${stats.present} attended / ${conductedClasses} conducted</p>
+                <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-indigo-500 h-2 rounded-full" style="width: ${percentage}%"></div></div>
+                <div class="text-xs text-right text-secondary mt-1"><span>P: ${stats.present}</span> &bull; <span>A: ${stats.absent}</span> &bull; <span>C: ${stats.cancelled}</span></div>
+                ${predictionHTML}
             `;
-            openModal('profile-modal');
+            summaryContent.appendChild(subjectDiv);
+        }
+        openModal('summary-modal');
+    }
+   
+    function showProgressTrackerModal() {
+        toggleMenu();
+        const content = document.getElementById('progress-tracker-content');
+        content.innerHTML = '';
+        const subjectStats = getSubjectStats();
+
+        for (const subject in subjectStats) {
+            const stats = subjectStats[subject];
+            const conducted = stats.present + stats.absent;
+            if (conducted === 0) continue;
+            const percentage = ((stats.present / conducted) * 100);
+            const color = percentage >= 75 ? 'bg-green-500' : percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500';
+
+            const subjectDiv = document.createElement('div');
+            subjectDiv.className = 'subject-summary-card p-3 rounded-lg border';
+            subjectDiv.innerHTML = `
+                <div class="flex justify-between items-center mb-1">
+                    <span class="font-bold text-bold font-subject">${stats.title}</span>
+                    <span class="font-semibold text-sm ${percentage < 75 ? 'text-red-500' : 'text-green-500'}">${percentage.toFixed(1)}%</span>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-4">
+                    <div class="${color} h-4 rounded-full text-center text-white text-xs font-bold flex items-center justify-center" style="width: ${percentage}%">${stats.present}/${conducted}</div>
+                </div>`;
+            content.appendChild(subjectDiv);
+        }
+        openModal('progress-modal');
+    }
+
+    function showProfileModal() {
+        toggleMenu();
+        const userData = JSON.parse(localStorage.getItem('smartAttendUser'));
+        const profilePic = localStorage.getItem(`smartAttendProfilePic_${userData.name}`);
+        if (profilePic) {
+            document.getElementById('profile-picture').src = profilePic;
+        }
+
+        const password = userData.password;
+        let college = "Not specified";
+        if (password.startsWith('1604')) {
+            college = "Muffakham Jah College of Engineering (MJCET)";
+        }
+       
+        let branch = "Not specified";
+        const branchCode = password.substring(6, 9);
+        if (branchCode === '750') branch = "CSE (Data Science)";
+        else if (branchCode === '733') branch = "Computer Science and Engineering";
+        else if (branchCode === '748') branch = "CSE (AI & ML)";
+
+        const content = document.getElementById('profile-details-content');
+        content.innerHTML = `
+            <p><strong class="font-semibold text-text-secondary w-24 inline-block">Name:</strong> <span class="text-bold">${userData.name}</span></p>
+            <p><strong class="font-semibold text-text-secondary w-24 inline-block">Batch:</strong> <span class="text-bold">${userData.batch}</span></p>
+            <p><strong class="font-semibold text-text-secondary w-24 inline-block">College:</strong> <span class="text-bold">${college}</span></p>
+            <p><strong class="font-semibold text-text-secondary w-24 inline-block">Branch:</strong> <span class="text-bold">${branch}</span></p>
+        `;
+        openModal('profile-modal');
+    }
+   
+    function markDayAsHoliday() {
+        playSound('click');
+        const dateString = selectedDate.toISOString().split('T')[0];
+        const holidayIndex = holidays.indexOf(dateString);
+
+        if (holidayIndex > -1) {
+            holidays.splice(holidayIndex, 1);
+        } else {
+            holidays.push(dateString);
+        }
+
+        const userData = JSON.parse(localStorage.getItem('smartAttendUser'));
+        localStorage.setItem(`smartAttendHolidays_${userData.name}`, JSON.stringify(holidays));
+       
+        renderDailySchedule();
+        updateAllAnalytics();
+    }
+   
+    function showFeedbackModal() {
+        toggleMenu();
+        openModal('feedback-modal');
+    }
+
+    function sendFeedback() {
+        playSound('save');
+        const feedbackText = document.getElementById('feedback-text').value;
+        if (feedbackText.trim() === '') {
+            showToast('Please enter your feedback first.', 'bg-red-500');
+            return;
+        }
+        const subject = "Feedback for SmartAttend Pro";
+        const body = encodeURIComponent(feedbackText);
+        window.location.href = `mailto:gulamwaheedmujtaba@gmail.com?subject=${subject}&body=${body}`;
+        closeModal('feedback-modal');
+        showToast('Thank you for your feedback!', 'bg-blue-500');
+    }
+
+    function showAboutModal() {
+        toggleMenu();
+        openModal('about-modal');
+    }
+
+    function showReportModal() {
+        toggleMenu();
+        const reportContent = document.getElementById('report-content');
+        const subjectStats = getSubjectStats();
+        const overallStats = calculateOverallStats();
+        let tableHTML = `<table class="w-full text-left border-collapse">
+            <thead>
+                <tr>
+                    <th class="py-2 px-4 border-b">Subject</th>
+                    <th class="py-2 px-4 border-b">Attended</th>
+                    <th class="py-2 px-4 border-b">Conducted</th>
+                    <th class="py-2 px-4 border-b">Percentage</th>
+                </tr>
+            </thead>
+            <tbody>`;
+       
+        for (const subject in subjectStats) {
+            const stats = subjectStats[subject];
+            const conducted = stats.present + stats.absent;
+            if (conducted > 0) {
+                const percentage = ((stats.present / conducted) * 100).toFixed(1);
+                tableHTML += `
+                    <tr>
+                        <td class="py-2 px-4 border-b">${stats.title}</td>
+                        <td class="py-2 px-4 border-b">${stats.present}</td>
+                        <td class="py-2 px-4 border-b">${conducted}</td>
+                        <td class="py-2 px-4 border-b">${percentage}%</td>
+                    </tr>`;
+            }
+        }
+
+        tableHTML += `
+            </tbody>
+            <tfoot>
+                <tr class="font-bold">
+                    <td class="py-2 px-4 border-t">Overall</td>
+                    <td class="py-2 px-4 border-t">${overallStats.present}</td>
+                    <td class="py-2 px-4 border-t">${overallStats.present + overallStats.absent}</td>
+                    <td class="py-2 px-4 border-t">${overallStats.percentage.toFixed(1)}%</td>
+                </tr>
+            </tfoot>
+        </table>`;
+       
+        reportContent.innerHTML = tableHTML;
+        openModal('report-modal');
+    }
+
+    function downloadReport() {
+        playSound('save');
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const userData = JSON.parse(localStorage.getItem('smartAttendUser'));
+        const subjectStats = getSubjectStats();
+        const overallStats = calculateOverallStats();
+       
+        doc.setFontSize(18);
+        doc.text("SmartAttend Pro - Attendance Report", 14, 22);
+        doc.setFontSize(11);
+        doc.text(`User: ${userData.name}`, 14, 32);
+        doc.text(`Batch: ${userData.batch}`, 14, 38);
+        doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 44);
+
+        const tableColumn = ["Subject", "Attended", "Conducted", "Percentage (%)"];
+        const tableRows = [];
+        for (const subject in subjectStats) {
+            const stats = subjectStats[subject];
+            const conducted = stats.present + stats.absent;
+            if (conducted > 0) {
+                const percentage = ((stats.present / conducted) * 100).toFixed(1);
+                tableRows.push([stats.title, stats.present, conducted, percentage]);
+            }
+        }
+        doc.autoTable({ head: [tableColumn], body: tableRows, startY: 50 });
+
+        const finalY = doc.lastAutoTable.finalY;
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Overall Summary", 14, finalY + 15);
+        const summaryData = [
+            ["Total Attended", overallStats.present],
+            ["Total Conducted", overallStats.present + overallStats.absent],
+            ["Overall Percentage", `${overallStats.percentage.toFixed(1)}%`]
+        ];
+        doc.autoTable({ body: summaryData, startY: finalY + 20 });
+
+        const pdfBlob = doc.output('blob');
+        const url = URL.createObjectURL(pdfBlob);
+        const fileName = `SmartAttend_Report_${userData.name}.pdf`;
+       
+        prepareDownload("Download Report", "Your PDF report is ready.", url, fileName);
+    }
+
+    function showScheduleModal() {
+        toggleMenu();
+        const scheduleContent = document.getElementById('schedule-content');
+        const timetableCsv = `Day/Time,9:15-10:10,10:10-11:05,11:05-12:00,12:00-12:55,12:55-1:45,1:45-2:45,2:45-3:45\nMON,Lab,Lab,LST,ETC,LUNCH,JAVA,IDS\nTUE,LST,DM,IDS,JAVA,LUNCH,P&S,-\nWED,Lab,Lab,JAVA,ETC,LUNCH,P&S,DS\nTHU,IDS,DM,DS,LST,LUNCH,Lab,Lab\nFRI,ETC,DS,DM,P&S,LUNCH,-,-`;
+       
+        const rows = timetableCsv.split('\n');
+        let tableHTML = `<table class="w-full text-left border-collapse">`;
+        rows.forEach((row, index) => {
+            const columns = row.split(',');
+            tableHTML += '<tr>';
+            columns.forEach(col => {
+                if (index === 0) {
+                    tableHTML += `<th class="py-2 px-4 border">${col}</th>`;
+                } else {
+                    tableHTML += `<td class="py-2 px-4 border">${col.replace(/\//g, ' / ')}</td>`;
+                }
+            });
+            tableHTML += '</tr>';
+        });
+        tableHTML += '</table>';
+        scheduleContent.innerHTML = tableHTML;
+        openModal('schedule-modal');
+    }
+
+    function toggleReminders(event) {
+        playSound('click');
+        const isChecked = event.target.checked;
+        document.getElementById('settings-reminder-toggle').checked = isChecked;
+        localStorage.setItem('smartAttendReminders', isChecked);
+        if (isChecked) {
+            scheduleRemindersForToday();
+            showToast('Reminders are ON', 'bg-blue-500');
+        } else {
+            reminderTimeouts.forEach(clearTimeout);
+            reminderTimeouts = [];
+            showToast('Reminders are OFF', 'bg-gray-500');
+        }
+    }
+
+    function showImportExportModal() {
+        toggleMenu();
+        openModal('import-export-modal');
+    }
+
+    function exportData() {
+        playSound('save');
+        const userData = JSON.parse(localStorage.getItem('smartAttendUser'));
+        const dataToExport = {
+            attendanceData: attendanceData,
+            extraClasses: extraClasses,
+            holidays: holidays,
+            dailyRemovedClasses: dailyRemovedClasses,
+            profilePic: localStorage.getItem(`smartAttendProfilePic_${userData.name}`) || null
+        };
+
+        const dataStr = JSON.stringify(dataToExport, null, 2);
+        const dataBlob = new Blob([dataStr], {type: "text/plain"});
+        const url = URL.createObjectURL(dataBlob);
+        const fileName = `smartattend_backup_${userData.name}.txt`;
+       
+        prepareDownload("Export Data", "Your backup file is ready.", url, fileName);
+    }
+   
+    function prepareDownload(title, message, url, fileName) {
+        if (currentDownloadUrl) {
+            URL.revokeObjectURL(currentDownloadUrl);
+        }
+        currentDownloadUrl = url;
+
+        document.getElementById('download-title').textContent = title;
+        document.getElementById('download-message').textContent = message;
+        const link = document.getElementById('download-link');
+        link.href = url;
+        link.download = fileName;
+       
+        openModal('download-modal');
+    }
+
+    function closeDownloadModal() {
+        if (currentDownloadUrl) {
+            URL.revokeObjectURL(currentDownloadUrl);
+            currentDownloadUrl = null;
+        }
+        closeModal('download-modal');
+    }
+
+
+    function importData(event) {
+        playSound('save');
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                if (importedData.attendanceData && importedData.extraClasses && importedData.holidays) {
+                    const userData = JSON.parse(localStorage.getItem('smartAttendUser'));
+                   
+                    attendanceData = importedData.attendanceData;
+                    extraClasses = importedData.extraClasses;
+                    holidays = importedData.holidays;
+                    dailyRemovedClasses = importedData.dailyRemovedClasses || {};
+
+                    localStorage.setItem(`smartAttendData_${userData.name}`, JSON.stringify(attendanceData));
+                    localStorage.setItem(`smartAttendExtraClasses_${userData.name}`, JSON.stringify(extraClasses));
+                    localStorage.setItem(`smartAttendHolidays_${userData.name}`, JSON.stringify(holidays));
+                    localStorage.setItem(`smartAttendRemovedClasses_${userData.name}`, JSON.stringify(dailyRemovedClasses));
+
+                    if (importedData.profilePic) {
+                        localStorage.setItem(`smartAttendProfilePic_${userData.name}`, importedData.profilePic);
+                    } else {
+                        localStorage.removeItem(`smartAttendProfilePic_${userData.name}`);
+                    }
+
+                    showToast('Data imported successfully! Reloading...', 'bg-green-500');
+                    setTimeout(() => window.location.reload(), 1500);
+
+                } else {
+                    showToast('Invalid data file.', 'bg-red-500');
+                }
+            } catch (error) {
+                showToast('Error reading or parsing file.', 'bg-red-500');
+                console.error("Import error:", error);
+            }
+        };
+        reader.readAsText(file);
+        event.target.value = '';
+    }
+
+    function showVersionModal(fromSettings = false) {
+        if(!fromSettings) toggleMenu();
+        openModal('version-modal');
+    }
+
+    function showSettingsModal() {
+        toggleMenu();
+        const remindersEnabled = localStorage.getItem('smartAttendReminders') === 'true';
+        document.getElementById('settings-reminder-toggle').checked = remindersEnabled;
+        openModal('settings-modal');
+    }
+
+    // --- APP INITIALIZATION & INTERNAL LOGIC ---
+    let renderDailySchedule, updateAllAnalytics, initChart, checkAuth;
+    let showToast, loadAttendanceData, renderTrendChart, scheduleRemindersForToday, loadHolidays, loadExtraClasses, loadRemovedClasses;
+    let currentlyOpenCard = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('click', () => {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }, { once: true });
+
+        const loginButton = document.getElementById('login-button');
+        if(loginButton) loginButton.addEventListener('click', handleLogin);
+
+        document.getElementById('profile-pic-upload').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const base64Image = e.target.result;
+                const userData = JSON.parse(localStorage.getItem('smartAttendUser'));
+                localStorage.setItem(`smartAttendProfilePic_${userData.name}`, base64Image);
+                document.getElementById('profile-picture').src = base64Image;
+                document.getElementById('header-profile-picture').src = base64Image;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        document.getElementById('import-file-input').addEventListener('change', importData);
+
+        function getWeekNumber(d) {
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+            var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        }
+
+        renderTrendChart = function(period) {
+            const aggregatedData = {};
+            Object.keys(attendanceData).forEach(classId => {
+                const date = classId.split('|')[0];
+                if(holidays.includes(date)) return;
+
+                const status = attendanceData[classId];
+                if (status === 'present' || status === 'absent') {
+                    const d = new Date(date);
+                    let key;
+                    if (period === 'day') key = date;
+                    else if (period === 'week') key = `${d.getFullYear()}-W${getWeekNumber(d)}`;
+                    else key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                    
+                    if (!aggregatedData[key]) aggregatedData[key] = { present: 0, absent: 0 };
+                    aggregatedData[key][status]++;
+                }
+            });
+            const sortedKeys = Object.keys(aggregatedData).sort();
+            const labels = sortedKeys;
+            const data = sortedKeys.map(key => (aggregatedData[key].present / (aggregatedData[key].present + aggregatedData[key].absent)) * 100);
+           
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            if (trendChart) trendChart.destroy();
+            trendChart = new Chart(ctx, {
+                type: 'line', data: { labels, datasets: [{ label: 'Attendance %', data, borderColor: '#4f46e5', tension: 0.1, fill: false }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100, ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-secondary') } }, x: { ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-secondary') } } }, plugins: { legend: { labels: { color: getComputedStyle(document.body).getPropertyValue('--text-secondary') } } } }
+            });
+        }
+
+        showToast = function(message = 'Attendance saved successfully!', bgColor = 'bg-green-500', elementId = 'toast-notification', duration = 3000) {
+            const toast = document.getElementById(elementId);
+            toast.innerHTML = message;
+            toast.className = `text-white text-sm py-2 px-4 rounded-full shadow-lg ${bgColor} show`;
+            setTimeout(() => { toast.classList.remove('show'); }, duration);
+        }
+
+        scheduleRemindersForToday = function() {
+            reminderTimeouts.forEach(clearTimeout);
+            reminderTimeouts = [];
+           
+            const remindersEnabled = localStorage.getItem('smartAttendReminders') === 'true';
+            if (!remindersEnabled) return;
+
+            const today = new Date();
+            const dateString = today.toISOString().split('T')[0];
+            if(holidays.includes(dateString)) return;
+
+            const dayName = dayNames[today.getDay()];
+            const daySchedule = scheduleData[dayName] || [];
+            const currentExtraClasses = extraClasses[dateString] || [];
+            const allPeriods = [...daySchedule, ...currentExtraClasses];
+
+            allPeriods.forEach(period => {
+                if (period.type === 'lunch' || period.type === 'empty') return;
+               
+                const startTimeStr = period.time.split('-')[0];
+                const [hours, minutes] = startTimeStr.split(':');
+               
+                const classTime = new Date();
+                classTime.setHours(hours, minutes, 0, 0);
+               
+                const reminderTime = new Date(classTime.getTime() - 5 * 60000);
+                const delay = reminderTime.getTime() - Date.now();
+
+                if (delay > 0) {
+                    const course = courseDetails.find(c => c.abbr === period.subject) || { title: period.subject };
+                    const timeoutId = setTimeout(() => {
+                        showToast(`<strong>${course.title}</strong> class is about to start at ${startTimeStr}`, 'bg-indigo-500', 'reminder-toast', 5000);
+                    }, delay);
+                    reminderTimeouts.push(timeoutId);
+                }
+            });
+        }
+
+        loadAttendanceData = function(username) {
+            const data = localStorage.getItem(`smartAttendData_${username}`);
+            attendanceData = data ? JSON.parse(data) : {};
+        }
+       
+        loadHolidays = function(username) {
+            const data = localStorage.getItem(`smartAttendHolidays_${username}`);
+            holidays = data ? JSON.parse(data) : [];
+        }
+
+        loadExtraClasses = function(username) {
+            const data = localStorage.getItem(`smartAttendExtraClasses_${username}`);
+            extraClasses = data ? JSON.parse(data) : {};
         }
         
-        function markDayAsHoliday() {
-            const dateString = selectedDate.toISOString().split('T')[0];
-            const holidayIndex = holidays.indexOf(dateString);
+        loadRemovedClasses = function(username) {
+            const data = localStorage.getItem(`smartAttendRemovedClasses_${username}`);
+            dailyRemovedClasses = data ? JSON.parse(data) : {};
+        }
 
-            if (holidayIndex > -1) {
-                holidays.splice(holidayIndex, 1); // Unmark as holiday
-            } else {
-                holidays.push(dateString); // Mark as holiday
+        initChart = function() {
+            if(attendanceChart) {
+                attendanceChart.destroy();
+            }
+            attendanceChart = new Chart(document.getElementById('attendanceChart').getContext('2d'), {
+                type: 'doughnut',
+                data: { labels: ['Present', 'Absent', 'Cancelled'], datasets: [{ data: [0, 0, 0], backgroundColor: ['#22c55e', '#ef4444', '#94a3b8'], borderColor: getComputedStyle(document.body).getPropertyValue('--bg-card'), borderWidth: 4 }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { color: getComputedStyle(document.body).getPropertyValue('--text-secondary') } } } }
+            });
+        }
+
+        calculateOverallStats = function() {
+            let present = 0, absent = 0, cancelled = 0;
+            Object.keys(attendanceData).forEach(classId => {
+                const date = classId.split('|')[0];
+                if(holidays.includes(date)) return;
+
+                const status = attendanceData[classId];
+                if (status === 'present') present++; else if (status === 'absent') absent++; else if (status === 'cancelled') cancelled++;
+            });
+            const conducted = present + absent;
+            const percentage = conducted > 0 ? ((present / conducted) * 100) : 100.0;
+           
+            let needed = 0;
+            if (percentage < 75 && conducted > 0) {
+                needed = Math.ceil((0.75 * conducted - present) / 0.25);
             }
 
-            const userData = JSON.parse(localStorage.getItem('smartAttendUser'));
-            localStorage.setItem(`smartAttendHolidays_${userData.name}`, JSON.stringify(holidays));
-            
-            renderDailySchedule();
-            updateAllAnalytics();
-        }
-        
-        function showFeedbackModal() {
-            toggleMenu();
-            openModal('feedback-modal');
+            return { present, absent, cancelled, percentage: percentage, needed };
         }
 
-        function sendFeedback() {
-            const feedbackText = document.getElementById('feedback-text').value;
-            if (feedbackText.trim() === '') {
-                showToast('Please enter your feedback first.', 'bg-red-500');
+        function updateHeaderAttendance({ percentage }) {
+            document.getElementById('header-attendance').innerHTML = `Overall: <span class="text-indigo-400">${percentage.toFixed(1)}%</span>`;
+        }
+       
+        function updateSummaryCard({ present, absent, cancelled, percentage, needed }) {
+            if (!attendanceChart) {
+                initChart();
+            }
+            if (!attendanceChart) return;
+
+            attendanceChart.data.datasets[0].data = [present, absent, cancelled];
+            attendanceChart.update();
+            document.getElementById('attendance-stats').innerHTML = `<p class="text-lg font-semibold text-bold">Overall: <span class="text-indigo-600">${percentage.toFixed(1)}%</span></p><p class="text-sm text-secondary"><span class="font-semibold text-green-600">${present}</span> P &bull; <span class="font-semibold text-red-600">${absent}</span> A &bull; <span class="font-semibold text-slate-500">${cancelled}</span> C</p>`;
+
+            const alertBox = document.getElementById('attendance-alert');
+            if (percentage >= 75) {
+                alertBox.className = 'p-4 mb-6 rounded-lg shadow-md bg-green-100 dark:bg-green-900/20 border-l-4 border-green-500 text-green-700 dark:text-green-300';
+                alertBox.innerHTML = `<p class="font-bold">👍 Great Job!</p><p>Your attendance is looking good. Keep up the great work!</p>`;
+            } else if (percentage < 40) {
+                alertBox.className = 'p-4 mb-6 rounded-lg shadow-md bg-red-100 dark:bg-red-900/20 border-l-4 border-red-500 text-red-700 dark:text-red-300';
+                alertBox.innerHTML = `<p class="font-bold">🚨 Danger Zone!</p><p>Your attendance is critically low. You may be detained if this continues.</p>`;
+            } else if (needed > 0) {
+                alertBox.className = 'p-4 mb-6 rounded-lg shadow-md bg-yellow-100 dark:bg-yellow-900/20 border-l-4 border-yellow-500 text-yellow-700 dark:text-yellow-300';
+                alertBox.innerHTML = `<p class="font-bold">⚠️ Low Attendance Alert!</p><p>You need to attend the next <strong>${needed}</strong> class(es) consecutively to recover.</p>`;
+            } else {
+                alertBox.className = 'hidden p-4 mb-6 rounded-lg shadow-md';
+            }
+        }
+
+        updateAllAnalytics = function() {
+            const stats = calculateOverallStats();
+            updateHeaderAttendance(stats);
+            updateSummaryCard(stats);
+        }
+       
+        function deleteClassForToday(classId) {
+            playSound('click');
+            const dateString = selectedDate.toISOString().split('T')[0];
+            if (!dailyRemovedClasses[dateString]) {
+                dailyRemovedClasses[dateString] = [];
+            }
+            dailyRemovedClasses[dateString].push(classId);
+            
+            const userData = JSON.parse(localStorage.getItem('smartAttendUser'));
+            localStorage.setItem(`smartAttendRemovedClasses_${userData.name}`, JSON.stringify(dailyRemovedClasses));
+            
+            // Also remove from temp and main attendance data if present
+            delete tempAttendanceData[classId];
+            delete attendanceData[classId];
+            localStorage.setItem(`smartAttendData_${userData.name}`, JSON.stringify(attendanceData));
+
+            renderDailySchedule();
+            updateAllAnalytics();
+            showToast('Class removed for today', 'bg-blue-500');
+        }
+
+        renderDailySchedule = function() {
+            const scheduleContainer = document.getElementById('daily-schedule');
+            const holidayButton = document.getElementById('holiday-button');
+            const actionButtons = document.getElementById('action-buttons');
+            const addClassBtn = document.getElementById('add-class-btn');
+           
+            const dateString = selectedDate.toISOString().split('T')[0];
+            const isHoliday = holidays.includes(dateString);
+
+            if (isHoliday) {
+                scheduleContainer.innerHTML = `<p class="text-center text-secondary text-lg font-semibold py-8">🎉 Today is a Holiday! 🎉</p>`;
+                holidayButton.textContent = "Unmark Holiday";
+                actionButtons.classList.add('hidden');
+                addClassBtn.classList.add('hidden');
                 return;
             }
-            const subject = "Feedback for SmartAttend Pro";
-            const body = encodeURIComponent(feedbackText);
-            window.location.href = `mailto:gulamwaheedmujtaba@gmail.com?subject=${subject}&body=${body}`;
-            closeModal('feedback-modal');
-            showToast('Thank you for your feedback!', 'bg-blue-500');
+           
+            actionButtons.classList.remove('hidden');
+            addClassBtn.classList.remove('hidden');
+            holidayButton.textContent = "Mark as Holiday";
+            scheduleContainer.innerHTML = '';
+            const dayName = dayNames[selectedDate.getDay()];
+            document.getElementById('timetable-title').textContent = `${dayName}'s Schedule`;
+
+            const daySchedule = scheduleData[dayName] || [];
+            const currentExtraClasses = extraClasses[dateString] || [];
+            const todaysRemovedClasses = dailyRemovedClasses[dateString] || [];
+
+            let allPeriods = [...daySchedule, ...currentExtraClasses];
+            
+            // Filter out removed classes
+            allPeriods = allPeriods.filter(period => {
+                let currentSubject = period.subject;
+                 if (period.type === 'lab') {
+                    const userData = JSON.parse(localStorage.getItem('smartAttendUser'));
+                    currentSubject = period.details[userData.batch];
+                }
+                const classId = `${dateString}|${currentSubject}|${period.time}`;
+                return !todaysRemovedClasses.includes(classId);
+            });
+
+            if (allPeriods.length === 0) {
+                scheduleContainer.innerHTML = `<p class="text-center text-secondary">No classes scheduled for today.</p>`; return;
+            }
+
+            const userData = JSON.parse(localStorage.getItem('smartAttendUser'));
+
+            allPeriods.forEach(period => {
+                if (period.type === 'lunch' || period.type === 'empty') return;
+                let currentPeriod = { ...period };
+                if (currentPeriod.type === 'lab') currentPeriod.subject = currentPeriod.details[userData.batch];
+               
+                const classId = `${dateString}|${currentPeriod.subject}|${currentPeriod.time}`;
+                let status = tempAttendanceData.hasOwnProperty(classId) ? tempAttendanceData[classId] : (attendanceData[classId] || 'none');
+                const card = createClassCard(classId, currentPeriod.subject, currentPeriod.time, status);
+                scheduleContainer.appendChild(card);
+            });
         }
 
-        // --- APP INITIALIZATION & INTERNAL LOGIC ---
-        let renderDailySchedule, updateAllAnalytics, initChart, checkAuth;
-        let showToast, loadAttendanceData, renderTrendChart, scheduleRemindersForToday, loadHolidays;
+        function createClassCard(classId, subject, time, status) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'class-card-wrapper';
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const loginButton = document.getElementById('login-button');
-            if(loginButton) {
-                loginButton.addEventListener('click', handleLogin);
-            }
-
-            document.getElementById('profile-pic-upload').addEventListener('change', (event) => {
-                const file = event.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const base64Image = e.target.result;
-                    const userData = JSON.parse(localStorage.getItem('smartAttendUser'));
-                    localStorage.setItem(`smartAttendProfilePic_${userData.name}`, base64Image);
-                    document.getElementById('profile-picture').src = base64Image;
-                    document.getElementById('header-profile-picture').src = base64Image;
-                };
-                reader.readAsDataURL(file);
-            });
-
-            function getWeekNumber(d) {
-                d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-                d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-                var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-                return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-            }
-
-            renderTrendChart = function(period) {
-                const aggregatedData = {};
-                Object.keys(attendanceData).forEach(classId => {
-                    const date = classId.split('|')[0];
-                    if(holidays.includes(date)) return;
-
-                    const status = attendanceData[classId];
-                    if (status === 'present' || status === 'absent') {
-                        const d = new Date(date);
-                        let key = (period === 'week')
-                            ? `${d.getFullYear()}-W${getWeekNumber(d)}`
-                            : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-                        if (!aggregatedData[key]) aggregatedData[key] = { present: 0, absent: 0 };
-                        aggregatedData[key][status]++;
-                    }
-                });
-                const sortedKeys = Object.keys(aggregatedData).sort();
-                const labels = sortedKeys;
-                const data = sortedKeys.map(key => (aggregatedData[key].present / (aggregatedData[key].present + aggregatedData[key].absent)) * 100);
-               
-                const ctx = document.getElementById('trendChart').getContext('2d');
-                if (trendChart) trendChart.destroy();
-                trendChart = new Chart(ctx, {
-                    type: 'line', data: { labels, datasets: [{ label: 'Attendance %', data, borderColor: '#4f46e5', tension: 0.1, fill: false }] },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100, ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-secondary') } }, x: { ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-secondary') } } }, plugins: { legend: { labels: { color: getComputedStyle(document.body).getPropertyValue('--text-secondary') } } } }
-                });
-            }
-
-            showToast = function(message = 'Attendance saved successfully!', bgColor = 'bg-green-500', elementId = 'toast-notification', duration = 3000) {
-                const toast = document.getElementById(elementId);
-                toast.innerHTML = message;
-                toast.className = `text-white text-sm py-2 px-4 rounded-full shadow-lg ${bgColor} show`;
-                setTimeout(() => { toast.classList.remove('show'); }, duration);
-            }
-
-            scheduleRemindersForToday = function() {
-                reminderTimeouts.forEach(clearTimeout);
-                reminderTimeouts = [];
-                
-                const today = new Date();
-                const dateString = today.toISOString().split('T')[0];
-                if(holidays.includes(dateString)) return;
-
-                const dayName = dayNames[today.getDay()];
-                const daySchedule = scheduleData[dayName] || [];
-                const currentExtraClasses = extraClasses[dateString] || [];
-                const allPeriods = [...daySchedule, ...currentExtraClasses];
-
-                allPeriods.forEach(period => {
-                    if (period.type === 'lunch' || period.type === 'empty') return;
-                    
-                    const startTimeStr = period.time.split('-')[0];
-                    const [hours, minutes] = startTimeStr.split(':');
-                    
-                    const classTime = new Date();
-                    classTime.setHours(hours, minutes, 0, 0);
-                    
-                    const reminderTime = new Date(classTime.getTime() - 5 * 60000);
-                    const delay = reminderTime.getTime() - Date.now();
-
-                    if (delay > 0) {
-                        const course = courseDetails.find(c => c.abbr === period.subject) || { title: period.subject };
-                        const timeoutId = setTimeout(() => {
-                            showToast(`<strong>${course.title}</strong> class is about to start at ${startTimeStr}`, 'bg-indigo-500', 'reminder-toast', 5000);
-                        }, delay);
-                        reminderTimeouts.push(timeoutId);
-                    }
-                });
-            }
-
-            loadAttendanceData = function(username) {
-                const data = localStorage.getItem(`smartAttendData_${username}`);
-                attendanceData = data ? JSON.parse(data) : {};
-            }
+            const deleteAction = document.createElement('div');
+            deleteAction.className = 'delete-action';
+            deleteAction.textContent = 'Delete';
+            deleteAction.onclick = () => deleteClassForToday(classId);
             
-            loadHolidays = function(username) {
-                const data = localStorage.getItem(`smartAttendHolidays_${username}`);
-                holidays = data ? JSON.parse(data) : [];
-            }
-
-            initChart = function() {
-                if(attendanceChart) {
-                    attendanceChart.destroy();
-                }
-                attendanceChart = new Chart(document.getElementById('attendanceChart').getContext('2d'), {
-                    type: 'doughnut',
-                    data: { labels: ['Present', 'Absent', 'Cancelled'], datasets: [{ data: [0, 0, 0], backgroundColor: ['#22c55e', '#ef4444', '#94a3b8'], borderColor: getComputedStyle(document.body).getPropertyValue('--bg-card'), borderWidth: 4 }] },
-                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { color: getComputedStyle(document.body).getPropertyValue('--text-secondary') } } } }
-                });
-            }
-
-            function calculateOverallStats() {
-                let present = 0, absent = 0, cancelled = 0;
-                Object.keys(attendanceData).forEach(classId => {
-                    const date = classId.split('|')[0];
-                    if(holidays.includes(date)) return;
-
-                    const status = attendanceData[classId];
-                    if (status === 'present') present++; else if (status === 'absent') absent++; else if (status === 'cancelled') cancelled++;
-                });
-                const conducted = present + absent;
-                const percentage = conducted > 0 ? ((present / conducted) * 100) : 100.0;
-                
-                let needed = 0;
-                if (percentage < 75 && conducted > 0) {
-                    needed = Math.ceil((0.75 * conducted - present) / 0.25);
-                }
-
-                return { present, absent, cancelled, percentage: percentage, needed };
-            }
-
-            function updateHeaderAttendance({ percentage }) {
-                document.getElementById('header-attendance').innerHTML = `Overall: <span class="text-indigo-400">${percentage.toFixed(1)}%</span>`;
-            }
+            const swipeContent = document.createElement('div');
+            swipeContent.className = `swipe-content p-4 rounded-lg flex items-center justify-between transition border ${status === 'none' ? 'bg-slate-50 dark:bg-slate-800' : ''} status-${status}`;
+            
+            const course = courseDetails.find(c => c.abbr === subject);
+            let title = course ? course.title : subject;
            
-            function updateSummaryCard({ present, absent, cancelled, percentage, needed }) {
-                if (!attendanceChart) return;
-                attendanceChart.data.datasets[0].data = [present, absent, cancelled];
-                attendanceChart.update();
-                document.getElementById('attendance-stats').innerHTML = `<p class="text-lg font-semibold text-bold">Overall: <span class="text-indigo-600">${percentage.toFixed(1)}%</span></p><p class="text-sm text-secondary"><span class="font-semibold text-green-600">${present}</span> P &bull; <span class="font-semibold text-red-600">${absent}</span> A &bull; <span class="font-semibold text-slate-500">${cancelled}</span> C</p>`;
+            swipeContent.innerHTML = `
+                <div class="class-info flex-grow mr-4">
+                    <p class="font-bold text-lg text-bold font-subject">${title}</p>
+                    <p class="text-sm text-secondary">${time}</p>
+                </div>
+                <div class="flex space-x-2 flex-shrink-0">
+                    <button onclick="markTempAttendance('${classId}', 'present')" class="w-10 h-10 rounded-full font-semibold ${status === 'present' ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-700 dark:bg-slate-600 dark:text-slate-200'} transition">P</button>
+                    <button onclick="markTempAttendance('${classId}', 'absent')" class="w-10 h-10 rounded-full font-semibold ${status === 'absent' ? 'bg-red-500 text-white' : 'bg-slate-200 text-slate-700 dark:bg-slate-600 dark:text-slate-200'} transition">A</button>
+                    <button onclick="markTempAttendance('${classId}', 'cancelled')" class="w-10 h-10 rounded-full font-semibold ${status === 'cancelled' ? 'bg-slate-500 text-white' : 'bg-slate-200 text-slate-700 dark:bg-slate-600 dark:text-slate-200'} transition">C</button>
+                </div>`;
+            
+            wrapper.appendChild(deleteAction);
+            wrapper.appendChild(swipeContent);
 
-                const alertBox = document.getElementById('attendance-alert');
-                if (percentage >= 75) {
-                    alertBox.className = 'p-4 mb-6 rounded-lg shadow-md bg-green-100 border-l-4 border-green-500 text-green-700';
-                    alertBox.innerHTML = `<p class="font-bold">👍 Great Job!</p><p>Your attendance is looking good. Keep up the great work!</p>`;
-                } else if (percentage < 40) {
-                    alertBox.className = 'p-4 mb-6 rounded-lg shadow-md bg-red-100 border-l-4 border-red-500 text-red-700';
-                    alertBox.innerHTML = `<p class="font-bold">🚨 Danger Zone!</p><p>Your attendance is critically low. You may be detained if this continues.</p>`;
-                } else if (needed > 0) {
-                    alertBox.className = 'p-4 mb-6 rounded-lg shadow-md bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700';
-                    alertBox.innerHTML = `<p class="font-bold">⚠️ Low Attendance Alert!</p><p>You need to attend the next <strong>${needed}</strong> class(es) consecutively to recover.</p>`;
+            // Swipe logic
+            let startX = 0, currentX = 0, isDragging = false, isScrolling = false;
+            const threshold = 50;
+            const deleteWidth = 90;
+
+            const handleTouchStart = (e) => {
+                if (currentlyOpenCard && currentlyOpenCard !== swipeContent) {
+                    currentlyOpenCard.style.transform = 'translateX(0px)';
+                }
+                startX = e.touches[0].clientX;
+                currentX = startX;
+                isDragging = true;
+                isScrolling = false;
+                swipeContent.style.transition = 'none';
+            };
+
+            const handleTouchMove = (e) => {
+                if (!isDragging) return;
+                currentX = e.touches[0].clientX;
+                const deltaX = currentX - startX;
+
+                if (Math.abs(deltaX) > 10 && !isScrolling) {
+                    if(Math.abs(e.touches[0].clientY - e.touches[0].target.getBoundingClientRect().top) > 20) {
+                       isScrolling = true;
+                       isDragging = false;
+                       return;
+                    }
+                }
+                
+                if (isScrolling) return;
+
+                if (deltaX < 0 && deltaX > -deleteWidth - 20) {
+                     swipeContent.style.transform = `translateX(${deltaX}px)`;
+                }
+            };
+
+            const handleTouchEnd = () => {
+                if (!isDragging || isScrolling) return;
+                isDragging = false;
+                swipeContent.style.transition = 'transform 0.3s ease-out';
+                const deltaX = currentX - startX;
+                if (deltaX < -threshold) {
+                    swipeContent.style.transform = `translateX(-${deleteWidth}px)`;
+                    currentlyOpenCard = swipeContent;
                 } else {
-                    alertBox.className = 'hidden p-4 mb-6 rounded-lg shadow-md';
+                    swipeContent.style.transform = 'translateX(0px)';
+                    if(currentlyOpenCard === swipeContent) currentlyOpenCard = null;
                 }
-            }
+            };
 
-            updateAllAnalytics = function() {
-                const stats = calculateOverallStats();
-                updateHeaderAttendance(stats);
-                updateSummaryCard(stats);
-            }
+            swipeContent.addEventListener('touchstart', handleTouchStart, { passive: true });
+            swipeContent.addEventListener('touchmove', handleTouchMove, { passive: true });
+            swipeContent.addEventListener('touchend', handleTouchEnd);
+            
+            return wrapper;
+        }
+       
+        function initializeApp(userDataString) {
+            const userData = JSON.parse(localStorage.getItem('smartAttendUser'));
+            document.getElementById('username-display').innerHTML = `Welcome, ${userData.name} <br> <span class="font-normal text-sm text-text-secondary">(Batch ${userData.batch})</span>`;
            
-            renderDailySchedule = function() {
-                const scheduleContainer = document.getElementById('daily-schedule');
-                const holidayButton = document.getElementById('holiday-button');
-                const actionButtons = document.getElementById('action-buttons');
-                const addClassBtn = document.getElementById('add-class-btn');
-                
-                const dateString = selectedDate.toISOString().split('T')[0];
-                const isHoliday = holidays.includes(dateString);
-
-                if (isHoliday) {
-                    scheduleContainer.innerHTML = `<p class="text-center text-secondary text-lg font-semibold py-8">🎉 Today is a Holiday! 🎉</p>`;
-                    holidayButton.textContent = "Unmark Holiday";
-                    actionButtons.classList.remove('flex');
-                    actionButtons.classList.add('hidden');
-                    addClassBtn.classList.add('hidden');
-                    return;
-                }
-                
-                actionButtons.classList.add('flex');
-                actionButtons.classList.remove('hidden');
-                addClassBtn.classList.remove('hidden');
-                holidayButton.textContent = "Mark as Holiday";
-                scheduleContainer.innerHTML = '';
-                const dayName = dayNames[selectedDate.getDay()];
-                document.getElementById('timetable-title').textContent = `${dayName}'s Schedule`;
-
-                const daySchedule = scheduleData[dayName] || [];
-                const currentExtraClasses = extraClasses[dateString] || [];
-
-                if (!daySchedule.length && !currentExtraClasses.length) {
-                    scheduleContainer.innerHTML = `<p class="text-center text-secondary">No classes scheduled for today.</p>`; return;
-                }
-
-                const userData = JSON.parse(localStorage.getItem('smartAttendUser'));
-                const allPeriods = [...daySchedule, ...currentExtraClasses];
-
-                allPeriods.forEach(period => {
-                    if (period.type === 'lunch' || period.type === 'empty') return;
-                    let currentPeriod = { ...period };
-                    if (currentPeriod.type === 'lab') currentPeriod.subject = currentPeriod.details[userData.batch];
-                   
-                    const classId = `${dateString}|${currentPeriod.subject}|${currentPeriod.time}`;
-                    let status = tempAttendanceData.hasOwnProperty(classId) ? tempAttendanceData[classId] : (attendanceData[classId] || 'none');
-                    const card = createClassCard(classId, currentPeriod.subject, currentPeriod.time, status);
-                    scheduleContainer.appendChild(card);
-                });
+            const profilePic = localStorage.getItem(`smartAttendProfilePic_${userData.name}`);
+            if (profilePic) {
+                document.getElementById('header-profile-picture').src = profilePic;
             }
 
-            function createClassCard(classId, subject, time, status) {
-                const card = document.createElement('div');
-                card.className = `p-4 rounded-lg flex items-center justify-between transition border ${status === 'none' ? 'bg-slate-50 dark:bg-slate-700' : ''} status-${status}`;
-                const course = courseDetails.find(c => c.abbr === subject);
-                let title = course ? course.title : subject;
-                
-                card.innerHTML = `
-                    <div class="class-info flex-grow mr-4">
-                        <p class="font-bold text-lg text-bold font-subject">${title}</p>
-                        <p class="text-sm text-secondary">${time}</p>
-                    </div>
-                    <div class="flex space-x-2 flex-shrink-0">
-                        <button onclick="markTempAttendance('${classId}', 'present')" class="w-10 h-10 rounded-full font-semibold ${status === 'present' ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-700 dark:bg-slate-600 dark:text-slate-200'} transition">P</button>
-                        <button onclick="markTempAttendance('${classId}', 'absent')" class="w-10 h-10 rounded-full font-semibold ${status === 'absent' ? 'bg-red-500 text-white' : 'bg-slate-200 text-slate-700 dark:bg-slate-600 dark:text-slate-200'} transition">A</button>
-                        <button onclick="markTempAttendance('${classId}', 'cancelled')" class="w-10 h-10 rounded-full font-semibold ${status === 'cancelled' ? 'bg-slate-500 text-white' : 'bg-slate-200 text-slate-700 dark:bg-slate-600 dark:text-slate-200'} transition">C</button>
-                    </div>`;
-                return card;
-            }
-           
-            function initializeApp(userDataString) {
-                const userData = JSON.parse(localStorage.getItem('smartAttendUser'));
-                document.getElementById('username-display').innerHTML = `Welcome, ${userData.name} <br> <span class="font-normal text-sm text-text-secondary">(Batch ${userData.batch})</span>`;
-                
-                const profilePic = localStorage.getItem(`smartAttendProfilePic_${userData.name}`);
-                if (profilePic) {
-                    document.getElementById('header-profile-picture').src = profilePic;
+            const datePicker = document.getElementById('date-picker');
+            datePicker.value = selectedDate.toISOString().split('T')[0];
+            datePicker.addEventListener('change', (e) => {
+                 // Auto-save unsaved changes before switching day
+                if (Object.keys(tempAttendanceData).length > 0) {
+                    saveData(); // Use existing save function which also clears temp data
                 }
-
-                const datePicker = document.getElementById('date-picker');
-                datePicker.value = selectedDate.toISOString().split('T')[0];
-                datePicker.addEventListener('change', (e) => {
-                    const pickedDate = new Date(e.target.value);
-                    const timezoneOffset = pickedDate.getTimezoneOffset() * 60000;
-                    selectedDate = new Date(pickedDate.getTime() + timezoneOffset);
-                    tempAttendanceData = {};
-                    renderDailySchedule();
-                });
-               
-                const trendSortSelect = document.getElementById('trend-sort');
-                if (trendSortSelect) {
-                    trendSortSelect.addEventListener('change', (e) => {
-                        renderTrendChart(e.target.value);
-                    });
-                }
-
-                loadAttendanceData(userData.name);
-                loadHolidays(userData.name);
+                const pickedDate = new Date(e.target.value);
+                const timezoneOffset = pickedDate.getTimezoneOffset() * 60000;
+                selectedDate = new Date(pickedDate.getTime() + timezoneOffset);
+                tempAttendanceData = {}; // Clear for new day
                 renderDailySchedule();
-                initChart();
-                updateAllAnalytics();
+            });
+           
+            const trendSortSelect = document.getElementById('trend-sort');
+            if (trendSortSelect) {
+                trendSortSelect.addEventListener('change', (e) => {
+                    renderTrendChart(e.target.value);
+                });
+            }
+
+            loadAttendanceData(userData.name);
+            loadHolidays(userData.name);
+            loadExtraClasses(userData.name);
+            loadRemovedClasses(userData.name);
+            renderDailySchedule();
+            updateAllAnalytics();
+           
+            const remindersEnabled = localStorage.getItem('smartAttendReminders') === 'true';
+            document.getElementById('settings-reminder-toggle').checked = remindersEnabled;
+            if (remindersEnabled) {
                 scheduleRemindersForToday();
             }
-           
-            checkAuth = function() {
-                const savedTheme = localStorage.getItem('smartAttendTheme') || 'light';
-                document.documentElement.className = savedTheme;
-                const toggle = document.getElementById('dark-mode-toggle');
-                if (toggle) toggle.checked = (savedTheme === 'dark');
+        }
+       
+        checkAuth = function() {
+            const savedTheme = localStorage.getItem('smartAttendTheme') || 'light';
+            document.documentElement.className = savedTheme;
+            const toggle = document.getElementById('dark-mode-toggle');
+            if (toggle) toggle.checked = (savedTheme === 'dark');
 
-                const user = localStorage.getItem('smartAttendUser');
-                if (user) {
-                    document.getElementById('login-page').style.display = 'none';
-                    document.getElementById('app-page').style.display = 'block';
-                    initializeApp(user);
-                } else {
-                    document.getElementById('login-page').style.display = 'flex';
-                    document.getElementById('app-page').style.display = 'none';
-                }
+            const user = localStorage.getItem('smartAttendUser');
+            if (user) {
+                document.getElementById('login-page').style.display = 'none';
+                document.getElementById('app-page').style.display = 'block';
+                initializeApp(user);
+            } else {
+                document.getElementById('login-page').style.display = 'flex';
+                document.getElementById('app-page').style.display = 'none';
             }
+        }
 
-            let touchstartX = 0;
-            document.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; });
-            document.addEventListener('touchend', e => {
-                const touchendX = e.changedTouches[0].screenX;
-                const swipeDist = touchendX - touchstartX;
-                const sidebar = document.getElementById('sidebar-menu');
-                if (touchstartX < 50 && swipeDist > 100 && !sidebar.classList.contains('open')) toggleMenu();
-                if (sidebar.classList.contains('open') && swipeDist < -100) toggleMenu();
-            });
-
-            checkAuth();
+        let touchstartX = 0;
+        document.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; });
+        document.addEventListener('touchend', e => {
+            const touchendX = e.changedTouches[0].screenX;
+            const swipeDist = touchendX - touchstartX;
+            const sidebar = document.getElementById('sidebar-menu');
+            if (touchstartX < 50 && swipeDist > 100 && !sidebar.classList.contains('open')) toggleMenu();
+            if (sidebar.classList.contains('open') && swipeDist < -100) toggleMenu();
         });
-    </script>
+
+        checkAuth();
+    });
+  </script>
 </body>
 </html>
+
